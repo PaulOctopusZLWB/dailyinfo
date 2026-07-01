@@ -134,8 +134,26 @@ sources:
 
 def test_cli_publish_writes_processed_markdown_to_obsidian(tmp_path: Path) -> None:
     final_file = tmp_path / "processed.md"
+    candidate_json = tmp_path / "candidates.json"
     output_dir = tmp_path / "obsidian"
     web_output_dir = tmp_path / "published"
+    candidate_json.write_text(
+        json.dumps(
+            {
+                "metadata": {
+                    "fetched": 123,
+                    "within_window": 45,
+                    "lookback_days": 15,
+                    "deduped": 30,
+                    "rendered": 12,
+                    "failures": 1,
+                },
+                "failures": [{"source_id": "bad-source", "source_name": "Bad Source", "reason": "boom"}],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
     final_file.write_text(
         "# 2026-07-01 信息雷达晨报\n\n"
         "## 核心阅读区\n\n"
@@ -171,6 +189,8 @@ def test_cli_publish_writes_processed_markdown_to_obsidian(tmp_path: Path) -> No
             str(output_dir),
             "--web-output-dir",
             str(web_output_dir),
+            "--candidate-json",
+            str(candidate_json),
         ],
         check=False,
         capture_output=True,
@@ -192,6 +212,16 @@ def test_cli_publish_writes_processed_markdown_to_obsidian(tmp_path: Path) -> No
     assert web_report["core_items"][0]["deep_ids"] == ["D1"]
     assert web_report["deep_items"][0]["evidence_id"] == "E1"
     assert web_report["evidence_items"][0]["url"] == "https://github.com/example/agent-workflow"
+    assert web_report["evidence_items"][0]["source_label"] == "GitHub"
+    assert web_report["run_stats"]["fetched_items"] == 123
+    assert web_report["run_stats"]["within_window_items"] == 45
+    assert web_report["run_stats"]["lookback_days"] == 15
+    assert web_report["run_stats"]["deduped_items"] == 30
+    assert web_report["run_stats"]["rendered_candidates"] == 12
+    assert web_report["run_stats"]["failed_sources"] == 1
+    assert web_report["run_stats"]["final_core_items"] == 1
+    assert web_report["run_stats"]["final_deep_items"] == 1
+    assert web_report["run_stats"]["final_evidence_items"] == 1
 
 
 def test_cli_publish_rejects_unprocessed_candidate_markdown(tmp_path: Path) -> None:

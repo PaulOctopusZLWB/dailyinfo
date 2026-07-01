@@ -33,11 +33,21 @@ SAMPLE = """# 2026-07-01 信息雷达晨报
 
 
 def test_parse_published_report_extracts_three_layers(tmp_path: Path) -> None:
-    report = parse_published_report(SAMPLE, report_date="2026-07-01", source_markdown_path="/tmp/report.md")
+    report = parse_published_report(
+        SAMPLE,
+        report_date="2026-07-01",
+        source_markdown_path="/tmp/report.md",
+        run_stats={"enabled_sources": 10, "failed_sources": 2},
+    )
 
     assert report.date == "2026-07-01"
     assert report.title == "2026-07-01 信息雷达晨报"
     assert report.source_markdown_path == "/tmp/report.md"
+    assert report.run_stats["enabled_sources"] == 10
+    assert report.run_stats["failed_sources"] == 2
+    assert report.run_stats["final_core_items"] == 1
+    assert report.run_stats["final_deep_items"] == 1
+    assert report.run_stats["final_evidence_items"] == 1
     assert report.core_items[0].id == "C1"
     assert report.core_items[0].number == 1
     assert report.core_items[0].title == "LLM 风险正在转向应用栈"
@@ -50,6 +60,7 @@ def test_parse_published_report_extracts_three_layers(tmp_path: Path) -> None:
     assert report.deep_items[0].risk == "未见明显推广。"
     assert report.evidence_items[0].id == "E1"
     assert report.evidence_items[0].url == "http://arxiv.org/abs/2606.31639v1"
+    assert report.evidence_items[0].source_label == "arXiv"
     assert report.evidence_items[0].source_type == "arXiv 论文"
     assert report.evidence_items[0].published_at == "2026-06-30T13:21:43Z"
     assert report.evidence_items[0].ad_risk == "未见明显推广"
@@ -65,3 +76,5 @@ def test_write_published_report_json_writes_date_file(tmp_path: Path) -> None:
     assert '"core_items"' in text
     assert '"deep_items"' in text
     assert '"evidence_items"' in text
+    assert '"run_stats"' in text
+    assert '"source_label": "arXiv"' in text

@@ -11,6 +11,7 @@ const nodes = {
   categoryTabs: document.querySelector("#categoryTabs"),
   reportMeta: document.querySelector("#reportMeta"),
   summaryChips: document.querySelector("#summaryChips"),
+  runStats: document.querySelector("#runStats"),
   coreList: document.querySelector("#coreList"),
   deepList: document.querySelector("#deepList"),
   sourceList: document.querySelector("#sourceList"),
@@ -126,6 +127,7 @@ function renderReport() {
   renderSummaryChips(report);
   renderCoreItems(report);
   renderDeepItems(report);
+  renderRunStats(report);
   renderSources(report);
 }
 
@@ -156,6 +158,65 @@ function renderSummaryChips(report) {
     .join("");
   nodes.summaryChips.dataset.total = String(report.core_items.length + report.deep_items.length + report.evidence_items.length);
   nodes.summaryChips.dataset.sources = String(sourceCount);
+}
+
+function renderRunStats(report) {
+  const stats = report.run_stats || {};
+  const enabledSources = numberOrDash(stats.enabled_sources);
+  const completedSources = numberOrDash(stats.completed_sources);
+  const failedSources = Number(stats.failed_sources || 0);
+  const fetchedItems = numberOrDash(stats.fetched_items);
+  const withinWindow = numberOrDash(stats.within_window_items);
+  const lookbackDays = Number(stats.lookback_days || 15);
+  const dedupedItems = numberOrDash(stats.deduped_items);
+  const renderedCandidates = numberOrDash(stats.rendered_candidates);
+  const finalEvidence = Number(stats.final_evidence_items || report.evidence_items.length);
+  const finalCore = Number(stats.final_core_items || report.core_items.length);
+
+  const rows = [
+    {
+      label: "源状态",
+      value: `${completedSources}/${enabledSources}`,
+      detail: failedSources ? `${failedSources} 个失败` : "无失败源",
+    },
+    {
+      label: "原始材料",
+      value: fetchedItems,
+      detail: "抓取与导入总量",
+    },
+    {
+      label: `${lookbackDays} 天窗口`,
+      value: withinWindow,
+      detail: "按发布时间筛选",
+    },
+    {
+      label: "去重后",
+      value: dedupedItems,
+      detail: "URL / 标题 / 内容聚类",
+    },
+    {
+      label: "候选池",
+      value: renderedCandidates,
+      detail: "进入加工候选包",
+    },
+    {
+      label: "晨报",
+      value: `${finalCore}/${finalEvidence}`,
+      detail: "核心判断 / 证据卡",
+    },
+  ];
+
+  nodes.runStats.innerHTML = rows
+    .map(
+      (row) => `
+        <div class="statItem">
+          <span class="statLabel">${escapeHtml(row.label)}</span>
+          <strong>${escapeHtml(row.value)}</strong>
+          <small>${escapeHtml(row.detail)}</small>
+        </div>
+      `,
+    )
+    .join("");
 }
 
 function renderCoreItems(report) {
@@ -223,16 +284,29 @@ function renderDeepItems(report) {
 
 function renderSources(report) {
   const groups = new Map();
-  report.evidence_items.forEach((item) => {
-    const key = item.source_type || "未标注来源";
-    groups.set(key, (groups.get(key) || 0) + 1);
+  visibleEvidenceItems(report).forEach((item) => {
+    const key = item.source_label || sourceLabelFromUrl(item.url) || item.source_type || "未标注来源";
+    const entry = groups.get(key) || { count: 0, types: new Set() };
+    entry.count += 1;
+    if (item.source_type) {
+      entry.types.add(item.source_type);
+    }
+    groups.set(key, entry);
   });
+  if (!groups.size) {
+    nodes.sourceList.innerHTML = `<div class="emptyState compact">当前筛选下没有来源。</div>`;
+    return;
+  }
   nodes.sourceList.innerHTML = Array.from(groups.entries())
+    .sort((a, b) => b[1].count - a[1].count || a[0].localeCompare(b[0]))
     .map(
-      ([source, count]) => `
+      ([source, entry]) => `
         <div class="sourceItem">
-          <span class="sourceName">${escapeHtml(source)}</span>
-          <span class="sourceCount">${count}</span>
+          <span class="sourceName">
+            <strong>${escapeHtml(source)}</strong>
+            <small>${escapeHtml(Array.from(entry.types).join(" / ") || "来源")}</small>
+          </span>
+          <span class="sourceCount">${entry.count}</span>
         </div>
       `,
     )
@@ -308,9 +382,52 @@ function itemText(item) {
     item.recommendation_reason,
     item.risk,
     item.evidence_strength,
+    item.source_label,
+    item.source_type,
+    item.usage,
+    item.url,
   ]
     .filter(Boolean)
     .join(" ");
+}
+
+function visibleEvidenceItems(report) {
+  const query = state.activeQuery.trim().toLowerCase();
+  const hasActiveFilter = query || state.activeDirection !== "all";
+  if (!hasActiveFilter) {
+    return report.evidence_items;
+  }
+
+  const ids = new Set();
+  filterItems(report.deep_items, ["title", "body", "recommendation_reason", "risk"]).forEach((item) => {
+    if (item.evidence_id) {
+      ids.add(item.evidence_id);
+    }
+  });
+  filterItems(report.evidence_items, ["title", "source_label", "source_type", "usage", "url"]).forEach((item) => {
+    ids.add(item.id);
+  });
+  return report.evidence_items.filter((item) => ids.has(item.id));
+}
+
+function sourceLabelFromUrl(url) {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    if (host.includes("arxiv.org")) return "arXiv";
+    if (host.includes("github.com")) return "GitHub";
+    if (host.includes("cisa.gov")) return "CISA ICS";
+    if (host.includes("seeq.com")) return "Seeq";
+    return host;
+  } catch {
+    return "";
+  }
+}
+
+function numberOrDash(value) {
+  if (value === null || value === undefined || value === "") {
+    return "—";
+  }
+  return String(value);
 }
 
 function initAsciiMesh() {

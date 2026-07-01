@@ -14,6 +14,20 @@ def write_report(path: Path, date: str, title: str) -> None:
                 "date": date,
                 "title": title,
                 "source_markdown_path": f"/reports/{date}.md",
+                "run_stats": {
+                    "total_sources": 24,
+                    "enabled_sources": 20,
+                    "completed_sources": 18,
+                    "failed_sources": 2,
+                    "fetched_items": 100,
+                    "within_window_items": 40,
+                    "lookback_days": 15,
+                    "deduped_items": 30,
+                    "rendered_candidates": 10,
+                    "final_core_items": 1,
+                    "final_deep_items": 1,
+                    "final_evidence_items": 1,
+                },
                 "core_items": [
                     {
                         "id": "C1",
@@ -40,6 +54,7 @@ def write_report(path: Path, date: str, title: str) -> None:
                         "id": "E1",
                         "title": "LLM 应用栈漏洞综述",
                         "url": "http://arxiv.org/abs/2606.31639v1",
+                        "source_label": "arXiv",
                         "source_type": "arXiv 论文",
                         "published_at": "2026-06-30T13:21:43Z",
                         "ad_risk": "未见明显推广",
@@ -98,6 +113,7 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "信息雷达" in response.text
     assert "重点判断" in response.text
     assert "来源解读" in response.text
+    assert "处理统计" in response.text
     assert "核心阅读区优先" not in response.text
     assert "/api/reports/latest" in response.text
     assert "我的收藏" not in response.text
@@ -116,6 +132,8 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "Reader text must stay fully readable" in css
     assert "-webkit-line-clamp: unset" in css
     assert "prefers-reduced-motion" in css
+    assert "runStats" in css
+    assert "statItem" in css
 
     js = Path("web/app.js").read_text(encoding="utf-8")
     assert "initAsciiMesh" in js
@@ -128,6 +146,11 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "fillText" in js
     assert "已整理" in js
     assert "可读线索" in js
+    assert "renderRunStats" in js
+    assert "visibleEvidenceItems" in js
+    assert "source_label" in js
+    assert "源状态" in js
+    assert "候选池" in js
     assert "来源 " in js
     assert "为什么值得读" in js
     assert "深读 " not in js

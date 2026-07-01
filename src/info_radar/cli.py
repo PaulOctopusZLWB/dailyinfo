@@ -82,11 +82,13 @@ def main(argv=None):
             report_date = args.date or today_shanghai()
             final_markdown = args.final_file.read_text(encoding="utf-8")
             validate_processed_morning_brief(final_markdown)
+            run_stats = build_publish_run_stats(report_date, args.registry, args.candidate_json)
             report_path = write_markdown(args.output_dir, report_date, final_markdown)
             published_report = parse_published_report(
                 final_markdown,
                 report_date=report_date,
                 source_markdown_path=str(args.final_file),
+                run_stats=run_stats,
             )
             web_report_path = write_published_report_json(args.web_output_dir, published_report)
             print(
@@ -137,6 +139,8 @@ def build_parser():
     publish_parser.add_argument("--final-file", type=Path, required=True)
     publish_parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     publish_parser.add_argument("--web-output-dir", type=Path, default=DEFAULT_WEB_OUTPUT_DIR)
+    publish_parser.add_argument("--candidate-json", type=Path, default=None)
+    publish_parser.add_argument("--registry", type=Path, default=Path("config/source_registry.yml"))
 
     web_parser = subparsers.add_parser("web", help="Serve the reader-facing internal web page and read-only API.")
     web_parser.add_argument("--host", default="127.0.0.1")
@@ -159,6 +163,45 @@ def add_common_run_args(parser):
 
 def today_shanghai() -> str:
     return datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%Y-%m-%d")
+
+
+def build_publish_run_stats(report_date: str, registry_path: Path, candidate_json_path: Path | None) -> dict:
+    stats = {}
+    try:
+        registry = load_registry(registry_path)
+    except Exception:  # noqa: BLE001 - stats should not block publishing.
+        registry = None
+    if registry is not None:
+        enabled_sources = registry.enabled_sources()
+        stats["total_sources"] = len(registry.sources)
+        stats["enabled_sources"] = len(enabled_sources)
+
+    resolved_candidate_json = candidate_json_path or DEFAULT_STAGING_DIR / f"{report_date}-candidates.json"
+    if resolved_candidate_json.exists():
+        payload = json.loads(resolved_candidate_json.read_text(encoding="utf-8"))
+        metadata = payload.get("metadata", {}) if isinstance(payload, dict) else {}
+        failures = payload.get("failures", []) if isinstance(payload, dict) else []
+        failed_sources = int(metadata.get("failures", len(failures)) or 0)
+        stats.update(
+            {
+                "candidate_json_path": str(resolved_candidate_json),
+                "fetched_items": int(metadata.get("fetched", 0) or 0),
+                "within_window_items": int(metadata.get("within_window", 0) or 0),
+                "lookback_days": int(metadata.get("lookback_days", 0) or 0),
+                "deduped_items": int(metadata.get("deduped", 0) or 0),
+                "rendered_candidates": int(metadata.get("rendered", 0) or 0),
+                "failed_sources": failed_sources,
+            }
+        )
+    else:
+        stats["candidate_json_path"] = ""
+        stats.setdefault("failed_sources", 0)
+
+    enabled = stats.get("enabled_sources")
+    failed = stats.get("failed_sources")
+    if isinstance(enabled, int) and isinstance(failed, int):
+        stats["completed_sources"] = max(enabled - failed, 0)
+    return stats
 
 
 def load_local_env(path: Path) -> None:

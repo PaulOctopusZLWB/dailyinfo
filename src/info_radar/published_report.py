@@ -2,6 +2,8 @@ import json
 import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Any
+from urllib.parse import urlparse
 
 
 @dataclass(frozen=True)
@@ -30,6 +32,7 @@ class EvidenceItem:
     id: str
     title: str
     url: str
+    source_label: str
     source_type: str
     published_at: str
     ad_risk: str
@@ -41,6 +44,7 @@ class PublishedReport:
     date: str
     title: str
     source_markdown_path: str
+    run_stats: dict[str, Any]
     core_items: list[CoreItem]
     deep_items: list[DeepItem]
     evidence_items: list[EvidenceItem]
@@ -60,18 +64,31 @@ def parse_published_report(
     markdown: str,
     report_date: str,
     source_markdown_path: str = "",
+    run_stats: dict[str, Any] | None = None,
 ) -> PublishedReport:
     title = _first_heading(markdown) or f"{report_date} 信息雷达晨报"
     core_section = _section(markdown, "## 核心阅读区", "## 深度阅读区")
     deep_section = _section(markdown, "## 深度阅读区", "## 证据区")
     evidence_section = _section(markdown, "## 证据区", "")
+    core_items = _parse_core_items(core_section)
+    deep_items = _parse_deep_items(deep_section)
+    evidence_items = _parse_evidence_items(evidence_section)
+    stats = dict(run_stats or {})
+    stats.update(
+        {
+            "final_core_items": len(core_items),
+            "final_deep_items": len(deep_items),
+            "final_evidence_items": len(evidence_items),
+        }
+    )
     return PublishedReport(
         date=report_date,
         title=title,
         source_markdown_path=source_markdown_path,
-        core_items=_parse_core_items(core_section),
-        deep_items=_parse_deep_items(deep_section),
-        evidence_items=_parse_evidence_items(evidence_section),
+        run_stats=stats,
+        core_items=core_items,
+        deep_items=deep_items,
+        evidence_items=evidence_items,
     )
 
 
@@ -139,6 +156,7 @@ def _parse_evidence_items(section: str) -> list[EvidenceItem]:
                 id=item_id,
                 title=title,
                 url=url,
+                source_label=_source_label(url, bullets.get("来源类型", ""), title),
                 source_type=bullets.get("来源类型", ""),
                 published_at=bullets.get("发布时间", ""),
                 ad_risk=bullets.get("软文风险", ""),
@@ -224,6 +242,27 @@ def _extract_markdown_url(value: str) -> str:
     if match:
         return match.group(2).strip()
     return ""
+
+
+def _source_label(url: str, source_type: str, title: str) -> str:
+    source_text = f"{source_type} {url} {title}".lower()
+    parsed = urlparse(url)
+    host = parsed.netloc.lower().removeprefix("www.")
+    if "arxiv.org" in host or "arxiv" in source_text:
+        return "arXiv"
+    if "github.com" in host or "github" in source_text:
+        return "GitHub"
+    if "cisa.gov" in host or "cisa" in source_text:
+        return "CISA ICS"
+    if "seeq.com" in host or "seeq" in source_text:
+        return "Seeq"
+    if "openai.com" in host:
+        return "OpenAI"
+    if "anthropic.com" in host:
+        return "Anthropic"
+    if host:
+        return host
+    return source_type or title or "未标注来源"
 
 
 def _clean_body(text: str) -> str:
