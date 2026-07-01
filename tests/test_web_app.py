@@ -3,7 +3,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from info_radar.web_app import create_app
+from info_radar.web_app import client_host_allowed, create_app, parse_allowed_client_networks
 
 
 def write_report(path: Path, date: str, title: str) -> None:
@@ -100,6 +100,16 @@ def test_web_api_returns_404_for_missing_report(tmp_path: Path) -> None:
     response = client.get("/api/reports/2026-07-01")
 
     assert response.status_code == 404
+
+
+def test_client_host_allowed_limits_reader_to_local_and_10_net() -> None:
+    networks = parse_allowed_client_networks("127.0.0.0/8,::1/128,10.0.0.0/8")
+
+    assert client_host_allowed("127.0.0.1", networks)
+    assert client_host_allowed("::1", networks)
+    assert client_host_allowed("10.10.172.168", networks)
+    assert not client_host_allowed("192.168.1.10", networks)
+    assert not client_host_allowed("testclient", networks)
 
 
 def test_static_reader_page_is_served(tmp_path: Path) -> None:

@@ -1,8 +1,11 @@
 import json
+import os
+from ipaddress import ip_address, ip_network
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import JSONResponse
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -13,6 +16,13 @@ def create_app(
 ) -> FastAPI:
     repository = ReportRepository(reports_dir)
     app = FastAPI(title="Info Radar Reader", docs_url=None, redoc_url=None)
+    allowed_networks = parse_allowed_client_networks(os.environ.get("INFO_RADAR_ALLOWED_CLIENT_NETS", ""))
+
+    @app.middleware("http")
+    async def restrict_client_networks(request: Request, call_next):
+        if allowed_networks and not client_host_allowed(request.client.host if request.client else "", allowed_networks):
+            return JSONResponse({"detail": "Forbidden"}, status_code=403)
+        return await call_next(request)
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
@@ -124,3 +134,21 @@ class ReportRepository:
 
     def _read_report(self, path: Path) -> dict[str, Any]:
         return json.loads(path.read_text(encoding="utf-8"))
+
+
+def parse_allowed_client_networks(value: str):
+    networks = []
+    for raw in (value or "").split(","):
+        token = raw.strip()
+        if not token:
+            continue
+        networks.append(ip_network(token, strict=False))
+    return tuple(networks)
+
+
+def client_host_allowed(host: str, networks) -> bool:
+    try:
+        client_ip = ip_address(host)
+    except ValueError:
+        return False
+    return any(client_ip in network for network in networks)

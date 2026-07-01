@@ -74,15 +74,34 @@ CLI 会自动读取当前目录 `.env`，但不会覆盖已经在 shell 中 expo
 uv run info-radar web --host 127.0.0.1 --port 8787
 ```
 
-如果希望在本机持续挂着读者页，可以用项目脚本配合 `tmux`：
+如果希望在本机临时挂着读者页，可以用项目脚本配合 `tmux`：
 
 ```bash
 tmux new-session -d -s info-radar-web -c /Users/paul/Documents/info_radar './ops/bin/run-web.sh'
 ```
 
+`ops/bin/run-web.sh` 默认绑定 `0.0.0.0:8787`，但应用层只允许本机和 `10.0.0.0/8` 客户端访问：
+
+```bash
+INFO_RADAR_ALLOWED_CLIENT_NETS=127.0.0.0/8,::1/128,10.0.0.0/8 ./ops/bin/run-web.sh
+```
+
+常驻服务使用 launchd：
+
+```bash
+mkdir -p ~/Library/LaunchAgents .info_radar/logs
+cp ops/launchd/com.paul.info-radar-web.plist ~/Library/LaunchAgents/
+launchctl bootstrap "gui/$(id -u)" ~/Library/LaunchAgents/com.paul.info-radar-web.plist
+launchctl kickstart -k "gui/$(id -u)/com.paul.info-radar-web"
+```
+
 当前服务地址：
 
 `http://127.0.0.1:8787/`
+
+内网访问地址示例：
+
+`http://10.10.172.168:8787/`
 
 ## v0 Boundaries
 
