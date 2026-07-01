@@ -129,6 +129,8 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
 
     assert response.status_code == 200
     assert "信息雷达" in response.text
+    assert "TPT技术研发部" in response.text
+    assert "要点与来源" not in response.text
     assert "重点判断" in response.text
     assert "来源解读" in response.text
     assert "处理统计" in response.text
