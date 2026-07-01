@@ -29,6 +29,8 @@ def test_candidate_packet_is_staging_input_not_final_report() -> None:
     assert "Single Source Distiller" in markdown
     assert "Ad / Bias Auditor" in markdown
     assert "Morning Brief Renderer" in markdown
+    assert "优先离散内部不同论点" in markdown
+    assert "最多显性关联 3 个深度阅读 D 卡" in markdown
     assert "深度阅读区是一源一卡" in markdown
     assert "核心阅读区只能链接到深度阅读区 D 卡" in markdown
     assert "100-200 字中文 abstract" in markdown
@@ -40,5 +42,7 @@ def test_candidate_packet_is_staging_input_not_final_report() -> None:
     assert payload["processing_protocol"]["required_sections"] == ["核心阅读区", "深度阅读区", "证据区"]
     assert payload["processing_protocol"]["link_contract"]["core_to_deep"] == "C -> D"
     assert payload["processing_protocol"]["link_contract"]["deep_to_evidence"] == "D -> E"
+    assert payload["processing_protocol"]["link_contract"]["max_explicit_deep_links_per_core"] == 3
+    assert "discretize distinct viewpoints" in payload["processing_protocol"]["core_strategy"]
     assert "ai_philosophy" in payload["directions"]
     assert payload["directions"]["ai_agents"][0]["title"] == "Agent workflow repo"
