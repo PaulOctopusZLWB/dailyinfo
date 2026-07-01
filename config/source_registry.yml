@@ -1,0 +1,2241 @@
+sources:
+  - id: manual-bilibili
+    name: Bilibili 手工/实验入口
+    type: bilibili
+    url: bilibili://manual
+    directions: [macro_ai, temporal, industrial_ai, ai_agents, human_digital_twin, ai_philosophy]
+    language_hint: zh
+    priority: 75
+    enabled: true
+    notes: 先用手工 URL/摘录导入；后续再接 UP 主、收藏夹或浏览器辅助采集。
+  - id: manual-x
+    name: X 手工/官方 API 入口
+    type: x
+    url: x://manual
+    directions: [macro_ai, temporal, industrial_ai, ai_agents, human_digital_twin, ai_philosophy]
+    language_hint: mixed
+    priority: 80
+    enabled: true
+    notes: 无 token 时只支持手工导入；设置 X_BEARER_TOKEN 或 TWITTER_BEARER_TOKEN 后可用官方 API 抓公开用户时间线。
+  - id: manual-zsxq
+    name: 知识星球手工入口
+    type: zsxq
+    url: zsxq://manual
+    directions: [macro_ai, temporal, industrial_ai, ai_agents, human_digital_twin, ai_philosophy]
+    language_hint: zh
+    priority: 80
+    enabled: true
+    notes: 只导入自己账号可见内容的摘要/摘录，不输出付费全文。
+  - id: manual-restricted-cn
+    name: 受限中文信息源手工导入
+    type: manual
+    url: file://imports
+    directions: [macro_ai, temporal, industrial_ai, ai_agents, human_digital_twin, ai_philosophy]
+    language_hint: zh
+    priority: 70
+    enabled: true
+    notes: 用于微信公众号、社群、B 站评论等复制摘录。
+  - id: manual-industrial-cn
+    name: 工业控制软件 + AI 中文手工入口
+    type: manual
+    url: file://imports/industrial-cn
+    directions: [industrial_ai, temporal, ai_agents]
+    language_hint: zh
+    priority: 82
+    enabled: true
+    notes: 用于工控群、工业软件公众号、厂商直播、会议纪要、PDF 白皮书摘录；只保留观点/证据，不搬运付费全文。
+
+  - id: arxiv-ai
+    name: arXiv cs.AI
+    type: arxiv
+    url: "https://export.arxiv.org/api/query?search_query=cat:cs.AI&sortBy=submittedDate&sortOrder=descending&max_results=25"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 88
+    enabled: true
+    notes: 宏观 AI 与智能系统论文入口。
+  - id: arxiv-cl
+    name: arXiv cs.CL
+    type: arxiv
+    url: "https://export.arxiv.org/api/query?search_query=cat:cs.CL&sortBy=submittedDate&sortOrder=descending&max_results=25"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 84
+    enabled: true
+    notes: LLM、语言模型、agent 相关论文入口。
+  - id: arxiv-lg
+    name: arXiv cs.LG
+    type: arxiv
+    url: "https://export.arxiv.org/api/query?search_query=cat:cs.LG&sortBy=submittedDate&sortOrder=descending&max_results=25"
+    directions: [macro_ai, temporal]
+    language_hint: en
+    priority: 82
+    enabled: true
+    notes: 机器学习与时序算法论文入口。
+  - id: arxiv-se
+    name: arXiv cs.SE
+    type: arxiv
+    url: "https://export.arxiv.org/api/query?search_query=cat:cs.SE&sortBy=submittedDate&sortOrder=descending&max_results=20"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 70
+    enabled: true
+    notes: 软件工程与 agent 开发方法论。
+  - id: arxiv-hc
+    name: arXiv cs.HC
+    type: arxiv
+    url: "https://export.arxiv.org/api/query?search_query=cat:cs.HC&sortBy=submittedDate&sortOrder=descending&max_results=20"
+    directions: [human_digital_twin, ai_philosophy]
+    language_hint: en
+    priority: 70
+    enabled: true
+    notes: 人机交互、个人 AI、数字孪生相关研究。
+  - id: arxiv-time-series
+    name: arXiv time series query
+    type: arxiv
+    url: "https://export.arxiv.org/api/query?search_query=all:%22time%20series%22&sortBy=submittedDate&sortOrder=descending&max_results=25"
+    directions: [temporal]
+    language_hint: en
+    priority: 86
+    enabled: true
+    notes: 时序模型、预测、temporal reasoning 查询。
+
+  - id: hnrss-frontpage
+    name: Hacker News Front Page
+    type: rss
+    url: "https://hnrss.org/frontpage"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 62
+    enabled: true
+    notes: 高噪声但能捕捉工程社区关注点。
+  - id: hnrss-show
+    name: Hacker News Show HN
+    type: rss
+    url: "https://hnrss.org/show"
+    directions: [ai_agents, human_digital_twin, ai_philosophy]
+    language_hint: en
+    priority: 66
+    enabled: true
+    notes: 新工具与个人产品早期信号。
+  - id: lobsters-ai
+    name: Lobsters AI
+    type: rss
+    url: "https://lobste.rs/t/ai.rss"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 60
+    enabled: true
+    notes: 工程向 AI 讨论。
+
+  - id: github-openai-agents-python
+    name: OpenAI Agents Python
+    type: github
+    url: "https://github.com/openai/openai-agents-python"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 90
+    enabled: true
+    notes: Agent SDK release/issues。
+  - id: github-openai-codex
+    name: OpenAI Codex
+    type: github
+    url: "https://github.com/openai/codex"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 88
+    enabled: true
+    notes: Codex CLI/agent 实践入口。
+  - id: github-langchain
+    name: LangChain
+    type: github
+    url: "https://github.com/langchain-ai/langchain"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 75
+    enabled: true
+    notes: Agent 框架与生态变化。
+  - id: github-langgraph
+    name: LangGraph
+    type: github
+    url: "https://github.com/langchain-ai/langgraph"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 78
+    enabled: true
+    notes: Agent graph/workflow 实践。
+  - id: github-llama-index
+    name: LlamaIndex
+    type: github
+    url: "https://github.com/run-llama/llama_index"
+    directions: [ai_agents, human_digital_twin]
+    language_hint: en
+    priority: 74
+    enabled: true
+    notes: RAG、memory、agent 数据层。
+  - id: github-autogen
+    name: Microsoft AutoGen
+    type: github
+    url: "https://github.com/microsoft/autogen"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 70
+    enabled: true
+    notes: 多 agent 框架。
+  - id: github-crewai
+    name: CrewAI
+    type: github
+    url: "https://github.com/crewAIInc/crewAI"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 68
+    enabled: true
+    notes: Agent 编排框架。
+  - id: github-openhands
+    name: OpenHands
+    type: github
+    url: "https://github.com/All-Hands-AI/OpenHands"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 72
+    enabled: true
+    notes: 软件工程 agent。
+  - id: github-vercel-ai
+    name: Vercel AI SDK
+    type: github
+    url: "https://github.com/vercel/ai"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 72
+    enabled: true
+    notes: AI 应用开发 SDK。
+  - id: github-semantic-kernel
+    name: Microsoft Semantic Kernel
+    type: github
+    url: "https://github.com/microsoft/semantic-kernel"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 68
+    enabled: true
+    notes: 企业 agent 编排。
+  - id: github-browser-use
+    name: browser-use
+    type: github
+    url: "https://github.com/browser-use/browser-use"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 65
+    enabled: true
+    notes: 浏览器 agent 使用模式。
+  - id: github-smolagents
+    name: Hugging Face smolagents
+    type: github
+    url: "https://github.com/huggingface/smolagents"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 65
+    enabled: true
+    notes: 轻量 agent 框架。
+  - id: github-mcp-python-sdk
+    name: MCP Python SDK
+    type: github
+    url: "https://github.com/modelcontextprotocol/python-sdk"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 66
+    enabled: true
+    notes: Agent 工具协议基础设施。
+  - id: github-duckdb
+    name: DuckDB
+    type: github
+    url: "https://github.com/duckdb/duckdb"
+    directions: [industrial_ai, ai_agents]
+    language_hint: en
+    priority: 56
+    enabled: false
+    notes: 本地分析与数据工程工具候选。
+  - id: github-prefect
+    name: Prefect
+    type: github
+    url: "https://github.com/PrefectHQ/prefect"
+    directions: [ai_agents, industrial_ai]
+    language_hint: en
+    priority: 55
+    enabled: false
+    notes: 调度/工作流基础设施候选。
+  - id: github-ray
+    name: Ray
+    type: github
+    url: "https://github.com/ray-project/ray"
+    directions: [ai_agents, industrial_ai]
+    language_hint: en
+    priority: 55
+    enabled: false
+    notes: 分布式推理/训练基础设施候选。
+
+  - id: openai-news
+    name: OpenAI News
+    type: rss
+    url: "https://openai.com/news/rss.xml"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 92
+    enabled: false
+    notes: 官方产品与研究动态；RSS 可用性需实测。
+  - id: anthropic-news
+    name: Anthropic News
+    type: rss
+    url: "https://www.anthropic.com/news/rss.xml"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 90
+    enabled: false
+    notes: 官方产品与安全动态；RSS 可用性需实测。
+  - id: github-blog
+    name: GitHub Blog
+    type: rss
+    url: "https://github.blog/feed/"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 72
+    enabled: false
+    notes: GitHub Copilot、开发工具、平台动态。
+  - id: huggingface-blog
+    name: Hugging Face Blog
+    type: rss
+    url: "https://huggingface.co/blog/feed.xml"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 74
+    enabled: false
+    notes: 模型、agent、开源生态。
+  - id: langchain-blog
+    name: LangChain Blog
+    type: rss
+    url: "https://blog.langchain.com/rss/"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 70
+    enabled: false
+    notes: Agent 方法论与产品动态。
+  - id: llamaindex-blog
+    name: LlamaIndex Blog
+    type: rss
+    url: "https://www.llamaindex.ai/blog/rss.xml"
+    directions: [ai_agents, human_digital_twin]
+    language_hint: en
+    priority: 68
+    enabled: false
+    notes: Agent 数据层、memory、RAG。
+  - id: vercel-blog
+    name: Vercel Blog
+    type: rss
+    url: "https://vercel.com/blog/rss.xml"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 62
+    enabled: false
+    notes: AI SDK 与 AI app 构建实践。
+  - id: cloudflare-ai-blog
+    name: Cloudflare AI Blog
+    type: rss
+    url: "https://blog.cloudflare.com/tag/ai/rss/"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 62
+    enabled: false
+    notes: AI infra 与部署动态。
+  - id: microsoft-research
+    name: Microsoft Research Blog
+    type: rss
+    url: "https://www.microsoft.com/en-us/research/feed/"
+    directions: [macro_ai, temporal, human_digital_twin, ai_philosophy]
+    language_hint: en
+    priority: 65
+    enabled: false
+    notes: 研究与人机交互信号。
+  - id: import-ai
+    name: Import AI
+    type: rss
+    url: "https://importai.substack.com/feed"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 82
+    enabled: false
+    notes: 宏观 AI 前沿论点。
+  - id: interconnects
+    name: Interconnects
+    type: rss
+    url: "https://www.interconnects.ai/feed"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 80
+    enabled: false
+    notes: 模型生态和前沿判断。
+  - id: the-batch
+    name: The Batch
+    type: rss
+    url: "https://www.deeplearning.ai/the-batch/feed/"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 70
+    enabled: false
+    notes: AI 新闻与研究摘要。
+  - id: papers-with-code
+    name: Papers with Code
+    type: rss
+    url: "https://paperswithcode.com/rss"
+    directions: [macro_ai, temporal, ai_agents]
+    language_hint: en
+    priority: 65
+    enabled: false
+    notes: 论文和代码趋势。
+  - id: the-gradient
+    name: The Gradient
+    type: rss
+    url: "https://thegradient.pub/rss/"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 68
+    enabled: false
+    notes: AI 研究、社会影响与人机关系长文，默认关闭，稳定后可启用。
+  - id: noema-magazine
+    name: Noema Magazine
+    type: rss
+    url: "https://www.noemamag.com/?feed=noemarss"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 64
+    enabled: false
+    notes: 技术、社会、文明尺度的 AI 时代哲学与治理讨论。
+  - id: psyche
+    name: Psyche
+    type: rss
+    url: "https://psyche.co/feed.rss"
+    directions: [human_digital_twin, ai_philosophy]
+    language_hint: en
+    priority: 58
+    enabled: false
+    notes: 心智、自我、意义与人类经验材料，可作为朴素哲学补充。
+  - id: aeon
+    name: Aeon
+    type: rss
+    url: "https://aeon.co/feed.rss"
+    directions: [human_digital_twin, ai_philosophy]
+    language_hint: en
+    priority: 58
+    enabled: false
+    notes: 哲学、心理与人类处境材料；默认关闭，避免泛化噪声过大。
+
+  - id: siemens-industrial-ai
+    name: Siemens Industrial AI
+    type: web_list
+    url: "https://www.siemens.com/en-us/company/artificial-intelligence/industrial-ai/"
+    directions: [industrial_ai]
+    language_hint: en
+    priority: 66
+    enabled: false
+    notes: 官方 Industrial AI 总入口；案例和资源稳定但偏营销，适合证据回溯，不宜单独高权重。
+  - id: siemens-blog
+    name: Siemens Blog
+    type: rss
+    url: "https://blog.siemens.com/feed/"
+    directions: [industrial_ai, ai_agents]
+    language_hint: en
+    priority: 72
+    enabled: false
+    notes: 已验证 RSS，但全站 feed 很宽且多语言；后续加关键词/语言过滤后再启用，用于 software-defined automation、industrial AI、digital twin 与 shop-floor AI。
+  - id: palantir-aip
+    name: Palantir AIP
+    type: web_list
+    url: "https://www.palantir.com/platforms/aip/"
+    directions: [industrial_ai, ai_agents]
+    language_hint: en
+    priority: 68
+    enabled: false
+    notes: 企业 AI/ontology/agent 产品参考。
+  - id: palantir-blog
+    name: Palantir Blog
+    type: rss
+    url: "https://blog.palantir.com/feed"
+    directions: [industrial_ai, ai_agents]
+    language_hint: en
+    priority: 70
+    enabled: false
+    notes: 已验证 RSS，但全站 feed 很宽；重点看 AIP、Ontology、decision-centric operations、human-AI workflow，需过滤国防/金融/infra 泛化内容。
+  - id: seeq-blog
+    name: Seeq Blog
+    type: rss
+    url: "https://www.seeq.com/resources/blog/feed/"
+    directions: [industrial_ai, temporal]
+    language_hint: en
+    priority: 72
+    enabled: true
+    notes: 已验证 WordPress RSS；流程工业 analytics、time-series contextualization、process optimization 高相关。
+  - id: aspentech-blog
+    name: AspenTech Industrial AI
+    type: web_list
+    url: "https://www.aspentech.com/en/insights/industrial-ai-from-aspentech"
+    directions: [industrial_ai, temporal]
+    language_hint: en
+    priority: 62
+    enabled: false
+    notes: 官方 Industrial AI/asset optimization 入口；自动抓取有防爬风险，先默认关闭，适合人工回溯。
+  - id: aveva-blog
+    name: AVEVA Blog
+    type: web_list
+    url: "https://www.aveva.com/en/perspectives/blog/"
+    directions: [industrial_ai]
+    language_hint: en
+    priority: 60
+    enabled: false
+    notes: 工业软件、digital twin、AI。
+  - id: factory-software-aveva
+    name: Factory Software / AVEVA News
+    type: web_list
+    url: "https://on.factorysoftware.com/"
+    directions: [industrial_ai]
+    language_hint: en
+    priority: 58
+    enabled: false
+    notes: AVEVA 生态代理商新闻；SCADA、MES、Historian、Data Analytics & AI 信号较细，但厂商稿比例高。
+  - id: cisa-ics-advisories
+    name: CISA ICS Advisories
+    type: rss
+    url: "https://www.cisa.gov/cybersecurity-advisories/ics-advisories.xml"
+    directions: [industrial_ai]
+    language_hint: en
+    priority: 78
+    enabled: true
+    notes: 已验证 RSS；工控/OT 漏洞高信号源，适合判断工业 AI 落地的安全边界和受影响设备生态。
+  - id: dragos-blog
+    name: Dragos Blog
+    type: web_list
+    url: "https://www.dragos.com/blog"
+    directions: [industrial_ai]
+    language_hint: en
+    priority: 66
+    enabled: false
+    notes: OT security、threat intelligence、AI for OT security；普通 web_list 会先抓导航和产品页，需后续专用解析后启用。
+  - id: cechina-industrial-ai
+    name: 控制工程网 工业AI频道
+    type: web_list
+    url: "https://ai.cechina.cn/"
+    directions: [industrial_ai]
+    language_hint: zh
+    priority: 64
+    enabled: true
+    notes: 中文工业 AI 与工控自动化入口；需降权处理活动稿、厂商新闻和纯 PR。
+  - id: gongkong-portal
+    name: 中国工控网
+    type: web_list
+    url: "https://a.gongkong.com/"
+    directions: [industrial_ai]
+    language_hint: zh
+    priority: 54
+    enabled: false
+    notes: 工控、工业互联、智能制造门户；论坛/招聘/活动噪声高，先作为手工筛选源。
+  - id: eworks-portal
+    name: e-works 数字化企业网
+    type: web_list
+    url: "https://www.e-works.net.cn/"
+    directions: [industrial_ai, temporal]
+    language_hint: zh
+    priority: 58
+    enabled: false
+    notes: 智能制造、工业软件、研究报告入口；适合作为中文案例和调研报告来源，需过滤培训/活动。
+  - id: aii-alliance-reports
+    name: 工业互联网产业联盟报告
+    type: web_list
+    url: "https://www.aii-alliance.org/"
+    directions: [industrial_ai]
+    language_hint: zh
+    priority: 62
+    enabled: false
+    notes: 政策、标准、报告、测试床和工业 AI 指南；更新低频但适合补决策背景和术语框架。
+  - id: databricks-blog
+    name: Databricks Blog
+    type: web_list
+    url: "https://www.databricks.com/blog"
+    directions: [industrial_ai, ai_agents]
+    language_hint: en
+    priority: 58
+    enabled: false
+    notes: 数据平台与 AI 产品动态。
+  - id: snowflake-blog
+    name: Snowflake Blog
+    type: web_list
+    url: "https://www.snowflake.com/en/blog/"
+    directions: [industrial_ai, ai_agents]
+    language_hint: en
+    priority: 56
+    enabled: false
+    notes: 数据云与 AI app 动态。
+  - id: microsoft-fabric-blog
+    name: Microsoft Fabric Blog
+    type: web_list
+    url: "https://blog.fabric.microsoft.com/"
+    directions: [industrial_ai, ai_agents]
+    language_hint: en
+    priority: 56
+    enabled: false
+    notes: 数据平台与 copilot 动态。
+
+  - id: obsidian-changelog
+    name: Obsidian Changelog
+    type: web_list
+    url: "https://obsidian.md/changelog/"
+    directions: [human_digital_twin]
+    language_hint: en
+    priority: 45
+    enabled: false
+    notes: 个人知识系统产品动态。
+  - id: readwise-blog
+    name: Readwise Blog
+    type: web_list
+    url: "https://blog.readwise.io/"
+    directions: [human_digital_twin]
+    language_hint: en
+    priority: 45
+    enabled: false
+    notes: 阅读、知识管理与个人上下文。
+  - id: tana-blog
+    name: Tana Blog
+    type: web_list
+    url: "https://tana.inc/blog"
+    directions: [human_digital_twin]
+    language_hint: en
+    priority: 42
+    enabled: false
+    notes: 个人知识系统与 AI。
+  - id: rewind-limitless
+    name: Limitless AI
+    type: web_list
+    url: "https://www.limitless.ai/"
+    directions: [human_digital_twin]
+    language_hint: en
+    priority: 44
+    enabled: false
+    notes: 人类数字孪生/记忆设备产品候选。
+  - id: nist-ai
+    name: NIST AI
+    type: web_list
+    url: "https://www.nist.gov/artificial-intelligence"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 45
+    enabled: false
+    notes: AI 标准、治理、政策信号。
+  - id: cisa-alerts
+    name: CISA Alerts
+    type: rss
+    url: "https://www.cisa.gov/news.xml"
+    directions: [macro_ai, industrial_ai]
+    language_hint: en
+    priority: 35
+    enabled: false
+    notes: 安全与基础设施风险背景。
+
+  # Imported broad-pool sources from tech-news-digest and interview/transcript entrypoints.
+  - id: manual-youtube-transcripts
+    name: "YouTube 访谈/播客脚本手工入口"
+    type: manual
+    url: "file://imports/youtube-transcripts"
+    directions: [macro_ai, temporal, industrial_ai, ai_agents, human_digital_twin, ai_philosophy]
+    language_hint: mixed
+    priority: 78
+    enabled: true
+    notes: "用于导入自己可访问的 YouTube transcript、字幕、访谈摘录和节目笔记；不绕过付费、权限或平台限制。"
+  - id: manual-podcast-transcripts
+    name: "播客逐字稿/采访稿手工入口"
+    type: manual
+    url: "file://imports/podcast-transcripts"
+    directions: [macro_ai, ai_agents, human_digital_twin, ai_philosophy]
+    language_hint: mixed
+    priority: 76
+    enabled: true
+    notes: "用于导入 Podcast transcript、访谈稿、对谈纪要；只保留观点抽象和来源链接，不搬运受限全文。"
+  - id: podcast-latent-space-feed
+    name: "Latent Space Podcast / Newsletter"
+    type: rss
+    url: "https://www.latent.space/feed"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 78
+    enabled: true
+    notes: "AI Engineer 访谈和工程讨论；Substack feed 可抓元数据，完整内容按授权页面处理。"
+  - id: youtube-latent-space
+    name: "YouTube: Latent Space"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCxBcwypKK-W3GHd_RZ9FZrQ"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 68
+    enabled: true
+    notes: "AI 工程访谈视频入口；只抓标题/描述/RSS 元数据，脚本走 manual-youtube-transcripts。"
+  - id: youtube-dwarkesh
+    name: "YouTube: Dwarkesh Patel"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCZa18YV7qayTh-MRIrBhDpA"
+    directions: [macro_ai, ai_philosophy, human_digital_twin]
+    language_hint: en
+    priority: 66
+    enabled: true
+    notes: "长访谈和深度对谈入口；转写稿或笔记需走手工导入。"
+  - id: youtube-eye-on-ai
+    name: "YouTube: Eye on AI"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UC-o9u9QL4zXzBwjvT1gmzNg"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 62
+    enabled: true
+    notes: "AI 访谈节目入口；高层观点有价值，但单条内容需证据交叉。"
+  - id: podcast-no-priors-feed
+    name: "No Priors Podcast RSS"
+    type: rss
+    url: "https://feeds.megaphone.fm/nopriors"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 64
+    enabled: true
+    notes: "AI 创业者/研究者访谈；商业观点占比高，需标注利益相关和观点风险。"
+  - id: web-cognitive-revolution
+    name: "The Cognitive Revolution Archive"
+    type: web_list
+    url: "https://www.cognitiverevolution.ai/"
+    directions: [macro_ai, ai_agents, ai_philosophy]
+    language_hint: en
+    priority: 60
+    enabled: true
+    notes: "AI builders/researchers 访谈入口；web_list 质量依赖页面结构，需去重和人工校验。"
+  - id: web-eye-on-ai-archive
+    name: "Eye on AI Podcast Archive"
+    type: web_list
+    url: "https://www.eye-on.ai/podcast-archive"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 58
+    enabled: true
+    notes: "访谈归档页；用于补 RSS 漏抓和找到访谈对象。"
+  - id: web-podscripts-dwarkesh
+    name: "PodScripts: Dwarkesh Podcast"
+    type: web_list
+    url: "https://podscripts.co/podcasts/dwarkesh-podcast/"
+    directions: [macro_ai, ai_philosophy, human_digital_twin]
+    language_hint: en
+    priority: 54
+    enabled: true
+    notes: "第三方 transcript 聚合页，可信度和版权状态需逐条判断；不输出受限全文。"
+  - id: tnd-simonwillison-rss
+    name: "Simon Willison"
+    type: rss
+    url: "https://simonwillison.net/atom/everything/"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 76
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 LLM/AI tooling, prolific blogger 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-garymarcus-rss
+    name: "Gary Marcus"
+    type: rss
+    url: "https://garymarcus.substack.com/feed"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 76
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 AI critic, industry analysis 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-huggingface-rss
+    name: "Hugging Face Blog"
+    type: rss
+    url: "https://huggingface.co/blog/feed.xml"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 76
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Open source AI/ML 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-openai-rss
+    name: "OpenAI Blog"
+    type: rss
+    url: "https://openai.com/blog/rss.xml"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 76
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Official OpenAI updates 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-sebas-rss
+    name: "Sebastian Raschka"
+    type: rss
+    url: "https://magazine.sebastianraschka.com/feed"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 76
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 LLM research and tutorials 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-lilian-rss
+    name: "Lil'Log (Lilian Weng)"
+    type: rss
+    url: "https://lilianweng.github.io/index.xml"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 In-depth ML tutorials 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-gwern-rss
+    name: "Gwern"
+    type: rss
+    url: "https://gwern.substack.com/feed"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Deep AI/ML research essays 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-dwarkesh-rss
+    name: "Dwarkesh Patel"
+    type: rss
+    url: "https://www.dwarkeshpatel.com/feed"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 AI interviews and analysis 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-minimaxir-rss
+    name: "minimaxir (Max Woolf)"
+    type: rss
+    url: "https://minimaxir.com/index.xml"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 LLM benchmarks and experiments 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-googleai-rss
+    name: "Google AI Blog"
+    type: rss
+    url: "https://blog.google/technology/ai/rss/"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Google AI research 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-vitalik-rss
+    name: "Vitalik Buterin"
+    type: rss
+    url: "https://vitalik.eth.limo/feed.xml"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 50
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Ethereum founder Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-coindesk-rss
+    name: "CoinDesk"
+    type: rss
+    url: "https://www.coindesk.com/arc/outboundfeeds/rss/"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 50
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Major crypto news Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-theblock-rss
+    name: "The Block"
+    type: rss
+    url: "https://www.theblock.co/rss.xml"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 50
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Crypto news Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-decrypt-rss
+    name: "Decrypt"
+    type: rss
+    url: "https://decrypt.co/feed"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 38
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Crypto and web3 news Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-cointelegraph-rss
+    name: "Cointelegraph"
+    type: rss
+    url: "https://cointelegraph.com/rss"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 38
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Crypto news and analysis Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-hn-rss
+    name: "Hacker News Frontpage"
+    type: rss
+    url: "https://hnrss.org/frontpage"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 56
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 HN top stories 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-ars-rss
+    name: "Ars Technica"
+    type: rss
+    url: "https://feeds.arstechnica.com/arstechnica/index"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Tech news 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-techcrunch-rss
+    name: "TechCrunch"
+    type: rss
+    url: "https://techcrunch.com/feed/"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Startup and tech news 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-verge-rss
+    name: "The Verge"
+    type: rss
+    url: "https://www.theverge.com/rss/index.xml"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Tech news 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-krebs-rss
+    name: "Krebs on Security"
+    type: rss
+    url: "https://krebsonsecurity.com/feed/"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Cybersecurity 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-daringfireball-rss
+    name: "Daring Fireball"
+    type: rss
+    url: "https://daringfireball.net/feeds/main"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Apple/tech commentary 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-pg-rss
+    name: "Paul Graham"
+    type: rss
+    url: "http://www.aaronsw.com/2002/feeds/pgessays.rss"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Startups and tech essays 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-troyhunt-rss
+    name: "Troy Hunt"
+    type: rss
+    url: "https://www.troyhunt.com/rss/"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Security, HIBP 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-antirez-rss
+    name: "antirez"
+    type: rss
+    url: "http://antirez.com/rss"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Redis creator, systems 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-mitchellh-rss
+    name: "Mitchell Hashimoto"
+    type: rss
+    url: "https://mitchellh.com/feed.xml"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Ghostty, infrastructure 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-geohot-rss
+    name: "Geohot"
+    type: rss
+    url: "https://geohot.github.io/blog/feed.xml"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 tinygrad, AI infrastructure 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-ml-reddit-rss
+    name: "r/MachineLearning"
+    type: rss
+    url: "https://www.reddit.com/r/MachineLearning/.rss"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Reddit ML community 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-36kr-rss
+    name: "36氪"
+    type: rss
+    url: "https://36kr.com/feed"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 50
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 中文科技媒体 Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-synced-rss
+    name: "机器之心 Synced"
+    type: rss
+    url: "https://www.jiqizhixin.com/rss"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 76
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 中文AI媒体 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-qbitai-rss
+    name: "量子位 QbitAI"
+    type: rss
+    url: "https://www.qbitai.com/feed"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 中文AI媒体 (may 403) 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-infoq-rss
+    name: "InfoQ 中文"
+    type: rss
+    url: "https://www.infoq.cn/feed"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 技术社区 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-sama-twitter
+    name: "Sam Altman (OpenAI CEO)"
+    type: x
+    url: "https://x.com/sama"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 OpenAI CEO X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-openai-twitter
+    name: "OpenAI official"
+    type: x
+    url: "https://x.com/OpenAI"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 OpenAI official X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-anthropic-twitter
+    name: "Anthropic official"
+    type: x
+    url: "https://x.com/AnthropicAI"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Anthropic official X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-ylecun-twitter
+    name: "Yann LeCun (Meta AI)"
+    type: x
+    url: "https://x.com/ylecun"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Meta AI X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-mistral-twitter
+    name: "Mistral AI official"
+    type: x
+    url: "https://x.com/MistralAI"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Mistral AI official X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-deepmind-twitter
+    name: "Google DeepMind official"
+    type: x
+    url: "https://x.com/GoogleDeepMind"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Google DeepMind official X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-googleai-twitter
+    name: "Google AI official"
+    type: x
+    url: "https://x.com/GoogleAI"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Google AI official X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-xai-twitter
+    name: "xAI official"
+    type: x
+    url: "https://x.com/xai"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 xAI official X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-karpathy-twitter
+    name: "Andrej Karpathy"
+    type: x
+    url: "https://x.com/karpathy"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 AI researcher X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-andrewng-twitter
+    name: "Andrew Ng"
+    type: x
+    url: "https://x.com/AndrewYNg"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 AI educator X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-jimfan-twitter
+    name: "Jim Fan (NVIDIA)"
+    type: x
+    url: "https://x.com/DrJimFan"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 NVIDIA AI X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-hf-twitter
+    name: "Hugging Face official"
+    type: x
+    url: "https://x.com/huggingface"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Hugging Face official X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-langchain-twitter
+    name: "LangChain official"
+    type: x
+    url: "https://x.com/LangChain"
+    directions: [ai_agents]
+    language_hint: mixed
+    priority: 52
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 LangChain official X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-llamaindex-twitter
+    name: "LlamaIndex official"
+    type: x
+    url: "https://x.com/llama_index"
+    directions: [ai_agents]
+    language_hint: mixed
+    priority: 52
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 LlamaIndex official X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-emad-twitter
+    name: "Emad Mostaque"
+    type: x
+    url: "https://x.com/EMostaque"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 52
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Stability AI X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-sebastian-twitter
+    name: "Sebastian Raschka"
+    type: x
+    url: "https://x.com/rasbt"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 52
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 AI researcher X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-vitalik-twitter
+    name: "Vitalik Buterin (Ethereum)"
+    type: x
+    url: "https://x.com/VitalikButerin"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 38
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Ethereum founder X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-cz-twitter
+    name: "CZ (Binance)"
+    type: x
+    url: "https://x.com/cz_binance"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 38
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Binance X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-brian-twitter
+    name: "Brian Armstrong (Coinbase)"
+    type: x
+    url: "https://x.com/brian_armstrong"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 38
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Coinbase X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-saylor-twitter
+    name: "Michael Saylor (MicroStrategy)"
+    type: x
+    url: "https://x.com/saylor"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 38
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 MicroStrategy X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-pomp-twitter
+    name: "Anthony Pompliano"
+    type: x
+    url: "https://x.com/APompliano"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 26
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Crypto influencer X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-zachxbt-twitter
+    name: "ZachXBT"
+    type: x
+    url: "https://x.com/zachxbt"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 26
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 on-chain investigator X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-wu-twitter
+    name: "Wu Blockchain"
+    type: x
+    url: "https://x.com/WuBlockchain"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 38
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 吴说区块链 X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-discus-twitter
+    name: "神鱼 DiscusFish"
+    type: x
+    url: "https://x.com/bitfish"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 26
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 F2Pool/Cobo co-founder X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-mindao-twitter
+    name: "Mindao"
+    type: x
+    url: "https://x.com/mindaoyang"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 26
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 dForce founder X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-herbert-twitter
+    name: "Herbert"
+    type: x
+    url: "https://x.com/herbertcrypto"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 26
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 PANews founder X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-elon-twitter
+    name: "Elon Musk"
+    type: x
+    url: "https://x.com/elonmusk"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 32
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Entrepreneur X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-sundar-twitter
+    name: "Sundar Pichai"
+    type: x
+    url: "https://x.com/sundarpichai"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 32
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Google CEO X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-pmarca-twitter
+    name: "Marc Andreessen"
+    type: x
+    url: "https://x.com/pmarca"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 26
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 a16z X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-levie-twitter
+    name: "Aaron Levie"
+    type: x
+    url: "https://x.com/levie"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 32
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Box CEO X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-satya-twitter
+    name: "Satya Nadella"
+    type: x
+    url: "https://x.com/satyanadella"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 32
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Microsoft CEO X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-mit-tech-review-rss
+    name: "MIT Technology Review"
+    type: rss
+    url: "https://www.technologyreview.com/feed"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 76
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 AI policy + deep analysis 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-venturebeat-ai-rss
+    name: "VentureBeat AI"
+    type: rss
+    url: "https://venturebeat.com/category/ai/feed/"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 AI industry news 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-404media-rss
+    name: "404 Media"
+    type: rss
+    url: "https://www.404media.co/rss"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Independent tech investigative journalism 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-aisnakeoil-rss
+    name: "AI Snake Oil"
+    type: rss
+    url: "https://aisnakeoil.substack.com/feed"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Princeton professor, critical AI perspective 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-bytebytego-rss
+    name: "ByteByteGo"
+    type: rss
+    url: "https://blog.bytebytego.com/feed"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 System design + engineering by Alex Xu 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-nvidia-ai-rss
+    name: "NVIDIA AI Blog"
+    type: rss
+    url: "https://blogs.nvidia.com/feed/"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 76
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 GPU/AI infrastructure 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-deepmind-rss
+    name: "Google DeepMind Blog"
+    type: rss
+    url: "https://deepmind.google/blog/rss.xml"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 76
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Frontier AI research 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-producthunt-rss
+    name: "Product Hunt"
+    type: rss
+    url: "https://www.producthunt.com/feed"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 New product discovery, AI tools 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-messari-rss
+    name: "Messari"
+    type: rss
+    url: "https://messari.io/rss"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 38
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Crypto research reports Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-defiant-rss
+    name: "The Defiant"
+    type: rss
+    url: "https://thedefiant.io/feed"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 38
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 DeFi professional media Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-ifanr-rss
+    name: "爱范儿"
+    type: rss
+    url: "https://www.ifanr.com/feed"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Chinese tech product reviews 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-sspai-rss
+    name: "少数派"
+    type: rss
+    url: "https://sspai.com/feed"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Chinese productivity + tech depth 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-wired-rss
+    name: "Wired"
+    type: rss
+    url: "https://www.wired.com/feed/rss"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Tech culture deep reporting 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-ieee-spectrum-rss
+    name: "IEEE Spectrum"
+    type: rss
+    url: "https://spectrum.ieee.org/feeds/feed.rss"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Engineering + frontier tech authority 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-rowancheung-twitter
+    name: "Rowan Cheung (The Rundown AI)"
+    type: x
+    url: "https://x.com/rowancheung"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 AI newsletter founder, 567K followers X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-yudkowsky-twitter
+    name: "Eliezer Yudkowsky"
+    type: x
+    url: "https://x.com/ESYudkowsky"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 52
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 AI safety pioneer X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-demis-twitter
+    name: "Demis Hassabis (DeepMind CEO)"
+    type: x
+    url: "https://x.com/demishassabis"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 DeepMind CEO, Nobel laureate X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-dario-twitter
+    name: "Dario Amodei (Anthropic CEO)"
+    type: x
+    url: "https://x.com/DarioAmodei"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Anthropic CEO X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-hwchase-twitter
+    name: "Harrison Chase (LangChain)"
+    type: x
+    url: "https://x.com/hwchase17"
+    directions: [ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 LangChain founder, Agent ecosystem X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-swyx-twitter
+    name: "Swyx"
+    type: x
+    url: "https://x.com/swyx"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 52
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 AI Engineer community, Latent Space podcast X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-erikbryn-twitter
+    name: "Erik Brynjolfsson"
+    type: x
+    url: "https://x.com/erikbryn"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 32
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Stanford Digital Economy Lab X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-balaji-twitter
+    name: "Balaji Srinivasan"
+    type: x
+    url: "https://x.com/balaji"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 38
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Former Coinbase CTO, macro thinker X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-cobie-twitter
+    name: "Cobie"
+    type: x
+    url: "https://x.com/cobie"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 26
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Influential independent crypto analyst X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-hsaka-twitter
+    name: "Hsaka"
+    type: x
+    url: "https://x.com/HsakaTrades"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 26
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Crypto trading analysis X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-cochran-twitter
+    name: "Adam Cochran"
+    type: x
+    url: "https://x.com/adamscochran"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 26
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Cinneamhain Ventures, on-chain analysis X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-lcermak-twitter
+    name: "Larry Cermak"
+    type: x
+    url: "https://x.com/lawmaster"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 26
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 The Block research director X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-pytorch-github
+    name: "PyTorch"
+    type: github
+    url: "https://github.com/pytorch/pytorch"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 74
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Leading deep learning framework from Meta 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-transformers-github
+    name: "Hugging Face Transformers"
+    type: github
+    url: "https://github.com/huggingface/transformers"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 74
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 State-of-the-art transformer models library 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-langchain-github
+    name: "LangChain"
+    type: github
+    url: "https://github.com/langchain-ai/langchain"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 74
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Framework for building LLM applications 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-llamaindex-github
+    name: "LlamaIndex"
+    type: github
+    url: "https://github.com/run-llama/llama_index"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 62
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Data framework for LLM applications 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-ollama-github
+    name: "Ollama"
+    type: github
+    url: "https://github.com/ollama/ollama"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 74
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Run LLMs locally with ease 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-vllm-github
+    name: "vLLM"
+    type: github
+    url: "https://github.com/vllm-project/vllm"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 62
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 High-throughput LLM inference engine 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-openai-python-github
+    name: "OpenAI Python SDK"
+    type: github
+    url: "https://github.com/openai/openai-python"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 62
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Official OpenAI Python client library 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-anthropic-sdk-github
+    name: "Anthropic SDK"
+    type: github
+    url: "https://github.com/anthropics/anthropic-sdk-python"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 62
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Official Anthropic Python SDK 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-crewai-github
+    name: "CrewAI"
+    type: github
+    url: "https://github.com/crewAIInc/crewAI"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 62
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Multi-agent AI collaboration framework 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-autogen-github
+    name: "AutoGen"
+    type: github
+    url: "https://github.com/microsoft/autogen"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 62
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Multi-agent conversation framework from Microsoft 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-dify-github
+    name: "Dify"
+    type: github
+    url: "https://github.com/langgenius/dify"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 62
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 LLM app development platform 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-openclaw-github
+    name: "OpenClaw"
+    type: github
+    url: "https://github.com/openclaw/openclaw"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 74
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Open source AI assistant platform 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-go-ethereum-github
+    name: "go-ethereum (Geth)"
+    type: github
+    url: "https://github.com/ethereum/go-ethereum"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 48
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Official Go implementation of Ethereum Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-solidity-github
+    name: "Solidity"
+    type: github
+    url: "https://github.com/ethereum/solidity"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 36
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Ethereum smart contract programming language Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-foundry-github
+    name: "Foundry"
+    type: github
+    url: "https://github.com/foundry-rs/foundry"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 36
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Fast, portable and modular Ethereum toolkit Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-eips-github
+    name: "Ethereum EIPs"
+    type: github
+    url: "https://github.com/ethereum/EIPs"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 48
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Ethereum Improvement Proposals repository Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-linux-github
+    name: "Linux Kernel"
+    type: github
+    url: "https://github.com/torvalds/linux"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 42
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Linux kernel source code maintained by Linus Torvalds 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-rust-github
+    name: "Rust"
+    type: github
+    url: "https://github.com/rust-lang/rust"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 42
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 The Rust programming language compiler and standard library 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-agno-github
+    name: "Agno"
+    type: github
+    url: "https://github.com/agno-agi/agno"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 74
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Lightweight AI agent framework 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-bensbites-rss
+    name: "Ben's Bites"
+    type: rss
+    url: "https://www.bensbites.com/feed"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 76
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-the-decoder-rss
+    name: "The Decoder"
+    type: rss
+    url: "https://the-decoder.com/feed/"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-a16zcrypto-rss
+    name: "a16z Crypto"
+    type: rss
+    url: "https://a16zcrypto.substack.com/feed"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 50
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-bankless-rss
+    name: "Bankless"
+    type: rss
+    url: "https://newsletter.banklesshq.com/feed"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 50
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-twitter-clementdelangue
+    name: "Clement Delangue"
+    type: x
+    url: "https://x.com/ClementDelangue"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-twitter-gaborhm
+    name: "Greg Brockman"
+    type: x
+    url: "https://x.com/GregBrockman"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-twitter-zuck
+    name: "Mark Zuckerberg"
+    type: x
+    url: "https://x.com/finkd"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-github-mcp-servers
+    name: "MCP Servers"
+    type: github
+    url: "https://github.com/modelcontextprotocol/servers"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 74
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-github-deepseek-v3
+    name: "DeepSeek V3"
+    type: github
+    url: "https://github.com/deepseek-ai/DeepSeek-V3"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 74
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-github-meta-llama
+    name: "Meta Llama"
+    type: github
+    url: "https://github.com/meta-llama/llama-models"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 74
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-reddit-machinelearning
+    name: "r/MachineLearning"
+    type: reddit
+    url: "https://www.reddit.com/r/MachineLearning/hot.json?limit=25"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 62
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Reddit 社区源高噪声、低可信；用于发现讨论热度和反方观点，不单独作为结论依据。"
+  - id: tnd-reddit-localllama
+    name: "r/LocalLLaMA"
+    type: reddit
+    url: "https://www.reddit.com/r/LocalLLaMA/hot.json?limit=25"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 50
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Reddit 社区源高噪声、低可信；用于发现讨论热度和反方观点，不单独作为结论依据。"
+  - id: tnd-reddit-cryptocurrency
+    name: "r/CryptoCurrency"
+    type: reddit
+    url: "https://www.reddit.com/r/CryptoCurrency/hot.json?limit=25"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 36
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Reddit 社区源高噪声、低可信；用于发现讨论热度和反方观点，不单独作为结论依据。"
+  - id: tnd-reddit-artificial
+    name: "r/artificial"
+    type: reddit
+    url: "https://www.reddit.com/r/artificial/hot.json?limit=25"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 50
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Reddit 社区源高噪声、低可信；用于发现讨论热度和反方观点，不单独作为结论依据。"
+  - id: tnd-reddit-ethereum
+    name: "r/ethereum"
+    type: reddit
+    url: "https://www.reddit.com/r/ethereum/hot.json?limit=25"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 24
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Reddit 社区源高噪声、低可信；用于发现讨论热度和反方观点，不单独作为结论依据。"
+  - id: tnd-reddit-chatgpt
+    name: "r/ChatGPT"
+    type: reddit
+    url: "https://www.reddit.com/r/ChatGPT/hot.json?limit=25"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 62
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Reddit 社区源高噪声、低可信；用于发现讨论热度和反方观点，不单独作为结论依据。"
+  - id: tnd-reddit-singularity
+    name: "r/singularity"
+    type: reddit
+    url: "https://www.reddit.com/r/singularity/hot.json?limit=25"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 50
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Reddit 社区源高噪声、低可信；用于发现讨论热度和反方观点，不单独作为结论依据。"
+  - id: tnd-reddit-openai
+    name: "r/OpenAI"
+    type: reddit
+    url: "https://www.reddit.com/r/OpenAI/hot.json?limit=25"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 62
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Reddit 社区源高噪声、低可信；用于发现讨论热度和反方观点，不单独作为结论依据。"
+  - id: tnd-reddit-bitcoin
+    name: "r/Bitcoin"
+    type: reddit
+    url: "https://www.reddit.com/r/Bitcoin/hot.json?limit=25"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 36
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Reddit 社区源高噪声、低可信；用于发现讨论热度和反方观点，不单独作为结论依据。"
+  - id: tnd-reddit-programming
+    name: "r/programming"
+    type: reddit
+    url: "https://www.reddit.com/r/programming/hot.json?limit=25"
+    directions: [macro_ai, ai_agents, ai_philosophy]
+    language_hint: mixed
+    priority: 50
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Reddit 社区源高噪声、低可信；用于发现讨论热度和反方观点，不单独作为结论依据。"
+  - id: tnd-reddit-anthropic
+    name: "r/Anthropic"
+    type: reddit
+    url: "https://www.reddit.com/r/Anthropic/hot.json?limit=25"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 62
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Reddit 社区源高噪声、低可信；用于发现讨论热度和反方观点，不单独作为结论依据。"
+  - id: tnd-reddit-defi
+    name: "r/defi"
+    type: reddit
+    url: "https://www.reddit.com/r/defi/hot.json?limit=25"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 24
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Reddit 社区源高噪声、低可信；用于发现讨论热度和反方观点，不单独作为结论依据。"
+  - id: tnd-reddit-experienceddevs
+    name: "r/ExperiencedDevs"
+    type: reddit
+    url: "https://www.reddit.com/r/ExperiencedDevs/hot.json?limit=25"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 50
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Reddit 社区源高噪声、低可信；用于发现讨论热度和反方观点，不单独作为结论依据。"
+  - id: tnd-openclaw-twitter
+    name: "OpenClaw"
+    type: x
+    url: "https://x.com/OpenClawAI"
+    directions: [ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Official OpenClaw account X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-steipete-twitter
+    name: "Peter Steinberger"
+    type: x
+    url: "https://x.com/steipete"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 64
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 OpenClaw creator, now at OpenAI X/KOL 源可信度波动高；当前无 token 时不自动抓取，后续只用于交叉印证和早期信号。"
+  - id: tnd-mem0-github
+    name: "Mem0"
+    type: github
+    url: "https://github.com/mem0ai/mem0"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 62
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Memory layer for AI agents 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-openviking-github
+    name: "OpenViking"
+    type: github
+    url: "https://github.com/volcengine/OpenViking"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 62
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Volcengine/ByteDance open-source LLM 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-moltworker-github
+    name: "Cloudflare MoltWorker"
+    type: github
+    url: "https://github.com/cloudflare/moltworker"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 42
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Cloudflare MoltWorker project 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-picoclaw-github
+    name: "Sipeed PicoClaw"
+    type: github
+    url: "https://github.com/sipeed/picoclaw"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 42
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Sipeed PicoClaw embedded AI project 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-nanobot-github
+    name: "HKUDS NanoBot"
+    type: github
+    url: "https://github.com/HKUDS/nanobot"
+    directions: [ai_agents]
+    language_hint: en
+    priority: 62
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 HKUDS NanoBot AI agent project 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-hermes-agent-github
+    name: "Nous Hermes Agent"
+    type: github
+    url: "https://github.com/nousresearch/hermes-agent"
+    directions: [macro_ai, ai_agents]
+    language_hint: en
+    priority: 62
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Nous Research Hermes agent framework/project 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+  - id: tnd-zeroclaw-github
+    name: "ZeroClaw"
+    type: github
+    url: "https://github.com/zeroclaw-labs/zeroclaw"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: en
+    priority: 36
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 ZeroClaw Labs project Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-overreacted-rss
+    name: "Overreacted (Dan Abramov)"
+    type: rss
+    url: "https://overreacted.io/rss.xml"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-eli-bendersky-rss
+    name: "Eli Bendersky"
+    type: rss
+    url: "https://eli.thegreenplace.net/feeds/all.atom.xml"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-matklad-rss
+    name: "matklad (Alex Kladov)"
+    type: rss
+    url: "https://matklad.github.io/feed.xml"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-lucumr-rss
+    name: "Armin Ronacher"
+    type: rss
+    url: "https://lucumr.pocoo.org/feed.atom"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-oldnewthing-rss
+    name: "The Old New Thing (Raymond Chen)"
+    type: rss
+    url: "https://devblogs.microsoft.com/oldnewthing/feed"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-rachelbythebay-rss
+    name: "Rachel by the Bay"
+    type: rss
+    url: "https://rachelbythebay.com/w/atom.xml"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-xeiaso-rss
+    name: "Xe Iaso"
+    type: rss
+    url: "https://xeiaso.net/blog.rss"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-pluralistic-rss
+    name: "Pluralistic (Cory Doctorow)"
+    type: rss
+    url: "https://pluralistic.net/feed/"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-lcamtuf-rss
+    name: "lcamtuf (Michal Zalewski)"
+    type: rss
+    url: "https://lcamtuf.substack.com/feed"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-hillelwayne-rss
+    name: "Hillel Wayne"
+    type: rss
+    url: "https://buttondown.com/hillelwayne/rss"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-dynomight-rss
+    name: "Dynomight"
+    type: rss
+    url: "https://dynomight.net/feed.xml"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-geoffreylitt-rss
+    name: "Geoffrey Litt"
+    type: rss
+    url: "https://www.geoffreylitt.com/feed.xml"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-fabiensanglard-rss
+    name: "Fabien Sanglard"
+    type: rss
+    url: "https://fabiensanglard.net/rss.xml"
+    directions: [macro_ai]
+    language_hint: en
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-youtube-karpathy
+    name: "YouTube: Andrej Karpathy"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCXUPKJO5MZQN11PqgIvyuvQ"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 70
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 YouTube 只抓标题/描述/RSS 元数据；完整脚本或访谈要走 transcript/manual 入口。"
+  - id: tnd-youtube-ai-explained
+    name: "YouTube: AI Explained"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCBjkbmzVplPgVF-GheNYWCg"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 70
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 YouTube 只抓标题/描述/RSS 元数据；完整脚本或访谈要走 transcript/manual 入口。"
+  - id: tnd-youtube-two-minute-papers
+    name: "YouTube: Two Minute Papers"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCbfYPyITQ-7l4upoX8nvctg"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 58
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 YouTube 只抓标题/描述/RSS 元数据；完整脚本或访谈要走 transcript/manual 入口。"
+  - id: tnd-youtube-yannic-kilcher
+    name: "YouTube: Yannic Kilcher"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCZHmQk67mSJgfCCTn7xBfew"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 58
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 YouTube 只抓标题/描述/RSS 元数据；完整脚本或访谈要走 transcript/manual 入口。"
+  - id: tnd-youtube-3blue1brown
+    name: "YouTube: 3Blue1Brown"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCYO_jab_esuFRV4b17AJtAw"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 38
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-youtube-fireship
+    name: "YouTube: Fireship"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCsBjURrPoezykLs9EqgamOA"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 38
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-youtube-matt-wolfe
+    name: "YouTube: Matt Wolfe"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCl3U-xOlFVLlsheAug-QoWA"
+    directions: [ai_agents]
+    language_hint: mixed
+    priority: 58
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 YouTube 只抓标题/描述/RSS 元数据；完整脚本或访谈要走 transcript/manual 入口。"
+  - id: tnd-youtube-dabo-rai
+    name: "YouTube: Dabo Rai"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCx11muyXurAlpAzrjhERSCw"
+    directions: [ai_agents]
+    language_hint: mixed
+    priority: 58
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 YouTube 只抓标题/描述/RSS 元数据；完整脚本或访谈要走 transcript/manual 入口。"
+  - id: tnd-youtube-ai-jason
+    name: "YouTube: AI Jason"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCrXSVX9a1mj8l0CMLwKgMVw"
+    directions: [ai_agents]
+    language_hint: mixed
+    priority: 58
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 YouTube 只抓标题/描述/RSS 元数据；完整脚本或访谈要走 transcript/manual 入口。"
+  - id: tnd-youtube-prompt-engineering
+    name: "YouTube: Prompt Engineering"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCDq7SjbgRKty5TgGafW8Clg"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 58
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 YouTube 只抓标题/描述/RSS 元数据；完整脚本或访谈要走 transcript/manual 入口。"
+  - id: tnd-youtube-bankless
+    name: "YouTube: Bankless"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCAl9Ld79qaZxp9JzEOwd3aA"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 44
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-youtube-a16z-crypto
+    name: "YouTube: a16z crypto"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCTHq3W46BiAYjKUYZq2qm-Q"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 32
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 Crypto/市场源低可信、高投机噪声；只用于观察 AI 叙事、激励结构和资本流向的叠加信号。"
+  - id: tnd-youtube-lex-fridman
+    name: "YouTube: Lex Fridman"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCSHZKyawb77ixDdsGog4iWA"
+    directions: [macro_ai, ai_philosophy]
+    language_hint: mixed
+    priority: 58
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 YouTube 只抓标题/描述/RSS 元数据；完整脚本或访谈要走 transcript/manual 入口。"
+  - id: tnd-youtube-computerphile
+    name: "YouTube: Computerphile"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UC9-y-6csu5WGm29I7JiwpnA"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 38
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+  - id: tnd-youtube-ai-epiphany
+    name: "YouTube: AI Epiphany"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UChepm4zf3QIYZgL5w7jl3MA"
+    directions: [macro_ai]
+    language_hint: mixed
+    priority: 58
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 YouTube 只抓标题/描述/RSS 元数据；完整脚本或访谈要走 transcript/manual 入口。"
+  - id: tnd-youtube-huggingface
+    name: "YouTube: Hugging Face"
+    type: youtube
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCHlNU7kIZhRgSbhHvFoy72w"
+    directions: [macro_ai, ai_agents]
+    language_hint: mixed
+    priority: 58
+    enabled: true
+    notes: "从 tech-news-digest 默认源导入。 YouTube 只抓标题/描述/RSS 元数据；完整脚本或访谈要走 transcript/manual 入口。"

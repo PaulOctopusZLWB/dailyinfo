@@ -1,0 +1,11 @@
+.DS_Store
+.venv/
+.info_radar/
+.env
+.env.local
+.env.*.local
+__pycache__/
+.pytest_cache/
+*.pyc
+*.egg-info/
+outputs/
