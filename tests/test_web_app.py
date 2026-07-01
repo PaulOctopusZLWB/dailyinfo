@@ -44,10 +44,13 @@ def write_report(path: Path, date: str, title: str) -> None:
                         "id": "D1",
                         "title": "LLM 应用栈漏洞综述",
                         "body": "深度阅读区正文。",
+                        "core_argument": "核心论点正文。",
+                        "impact": "对我们的影响正文。",
                         "recommendation_reason": "它把风险从模型层抬升到应用栈层。",
                         "evidence_strength": "high",
                         "risk": "未见明显推广。",
                         "evidence_id": "E1",
+                        "source_category": "学术论文",
                         "direction_id": "macro",
                     }
                 ],
@@ -58,6 +61,7 @@ def write_report(path: Path, date: str, title: str) -> None:
                         "url": "http://arxiv.org/abs/2606.31639v1",
                         "source_label": "arXiv",
                         "source_type": "arXiv 论文",
+                        "source_category": "学术论文",
                         "published_at": "2026-06-30T13:21:43Z",
                         "ad_risk": "未见明显推广",
                         "usage": "支持应用栈风险判断。",
@@ -177,6 +181,10 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "directionByLabel" in js
     assert "normalizeDirectionLabel" in js
     assert "visibleEvidenceItems" in js
+    assert "核心论点" in js
+    assert "对我们的影响" in js
+    assert "source_category" in js
+    assert "sourceCategoryForDeepItem" in js
     assert "direction_id" in js
     assert "direction_label" in js
     assert "source_label" in js

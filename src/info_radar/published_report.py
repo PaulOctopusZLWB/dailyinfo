@@ -22,10 +22,13 @@ class DeepItem:
     id: str
     title: str
     body: str
+    core_argument: str
+    impact: str
     recommendation_reason: str
     evidence_strength: str
     risk: str
     evidence_id: str
+    source_category: str = ""
     direction_id: str = ""
 
 
@@ -36,6 +39,7 @@ class EvidenceItem:
     url: str
     source_label: str
     source_type: str
+    source_category: str
     published_at: str
     ad_risk: str
     usage: str
@@ -131,6 +135,10 @@ def _parse_deep_items(section: str) -> list[DeepItem]:
         title = _strip_inline_links(raw_title)
         evidence_ids = _extract_ids(raw_title + "\n" + body, "E")
         body_text, bullets = _split_bullets(body)
+        core_argument, impact = _split_deep_argument_and_impact(
+            body_text,
+            recommendation_reason=bullets.get("推荐理由", ""),
+        )
         evidence_strength = bullets.get("证据强度", "")
         if "，" in evidence_strength:
             evidence_strength = evidence_strength.split("，", 1)[0].strip()
@@ -139,6 +147,8 @@ def _parse_deep_items(section: str) -> list[DeepItem]:
                 id=item_id,
                 title=title,
                 body=body_text,
+                core_argument=core_argument,
+                impact=impact,
                 recommendation_reason=bullets.get("推荐理由", ""),
                 evidence_strength=evidence_strength,
                 risk=bullets.get("风险提示", ""),
@@ -156,13 +166,16 @@ def _parse_evidence_items(section: str) -> list[EvidenceItem]:
         original = bullets.get("原文", "") or bullets.get("来源", "")
         url = _extract_markdown_url(original) or original
         direction_label = bullets.get("方向标签", "")
+        source_type = bullets.get("来源类型", "")
+        source_label = _source_label(url, source_type, title)
         items.append(
             EvidenceItem(
                 id=item_id,
                 title=title,
                 url=url,
-                source_label=_source_label(url, bullets.get("来源类型", ""), title),
-                source_type=bullets.get("来源类型", ""),
+                source_label=source_label,
+                source_type=source_type,
+                source_category=bullets.get("来源分类", "") or _source_category(url, source_type, source_label, title),
                 published_at=bullets.get("发布时间", ""),
                 ad_risk=bullets.get("软文风险", ""),
                 usage=bullets.get("用途", ""),
@@ -178,7 +191,13 @@ def _attach_deep_directions(deep_items: list[DeepItem], evidence_items: list[Evi
     attached = []
     for item in deep_items:
         evidence = evidence_by_id.get(item.evidence_id)
-        attached.append(replace(item, direction_id=evidence.direction_id if evidence else ""))
+        attached.append(
+            replace(
+                item,
+                direction_id=evidence.direction_id if evidence else "",
+                source_category=evidence.source_category if evidence else item.source_category,
+            )
+        )
     return attached
 
 
@@ -188,7 +207,7 @@ def _attach_core_directions(core_items: list[CoreItem], deep_items: list[DeepIte
     for item in core_items:
         direction_id = ""
         for deep_id in item.deep_ids:
-            direction_id = deep_by_id.get(deep_id, DeepItem("", "", "", "", "", "", "")).direction_id
+            direction_id = deep_by_id.get(deep_id, DeepItem("", "", "", "", "", "", "", "", "")).direction_id
             if direction_id:
                 break
         attached.append(replace(item, direction_id=direction_id))
@@ -253,6 +272,61 @@ def _split_recommendation(text: str) -> tuple[str, str]:
     return _clean_body(before), _clean_body(after)
 
 
+def _split_deep_argument_and_impact(body: str, recommendation_reason: str = "") -> tuple[str, str]:
+    labeled = _split_labeled_deep_body(body)
+    if labeled:
+        return labeled
+
+    clean = _clean_body(body)
+    if not clean:
+        return "", _clean_body(recommendation_reason)
+
+    markers = (
+        "这条来源的主要价值",
+        "对我们的决策意义",
+        "对我们的影响",
+        "对我们来说",
+        "后续需要",
+        "它暗示",
+        "这会影响",
+        "这能帮助",
+    )
+    marker_positions = [clean.find(marker) for marker in markers if clean.find(marker) > 0]
+    if marker_positions:
+        split_at = min(marker_positions)
+        return clean[:split_at].strip(), clean[split_at:].strip()
+
+    sentence_match = re.search(r"[。！？](?:\s|$)", clean)
+    if sentence_match and sentence_match.end() < len(clean):
+        return clean[: sentence_match.end()].strip(), clean[sentence_match.end() :].strip()
+
+    return clean, _clean_body(recommendation_reason)
+
+
+def _split_labeled_deep_body(body: str) -> tuple[str, str] | None:
+    labels = {
+        "核心论点": "",
+        "对我们的影响": "",
+    }
+    current = ""
+    for line in body.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        for label in labels:
+            marker = f"{label}："
+            if stripped.startswith(marker):
+                current = label
+                labels[label] = stripped.removeprefix(marker).strip()
+                break
+        else:
+            if current:
+                labels[current] = f"{labels[current]} {stripped}".strip()
+    if labels["核心论点"] or labels["对我们的影响"]:
+        return _clean_body(labels["核心论点"]), _clean_body(labels["对我们的影响"])
+    return None
+
+
 def _split_bullets(text: str) -> tuple[str, dict[str, str]]:
     body_lines = []
     bullets = {}
@@ -292,6 +366,29 @@ def _source_label(url: str, source_type: str, title: str) -> str:
     if host:
         return host
     return source_type or title or "未标注来源"
+
+
+def _source_category(url: str, source_type: str, source_label: str, title: str) -> str:
+    text = f"{source_type} {source_label} {title} {url}".lower()
+    parsed = urlparse(url)
+    host = parsed.netloc.lower().removeprefix("www.")
+    if "arxiv" in text or "paper" in text or "论文" in text:
+        return "学术论文"
+    if "youtube" in text or "podcast" in text or "播客" in text or "interview" in text or "访谈" in text:
+        return "播客/访谈"
+    if "github" in text or "release" in text or "issue" in text or "开源" in text:
+        return "开源项目"
+    if "cisa" in text or "ics" in text or "vulnerability" in text or "安全" in text or "漏洞" in text:
+        return "安全公告"
+    if "news" in text or "regulation" in text or "policy" in text or "新闻" in text or "监管" in text or "政策" in text:
+        return "新闻/政策"
+    if any(token in host for token in ("siemens", "aveva", "aspentech", "seeq", "palantir", "openai", "anthropic")):
+        return "企业发布"
+    if any(token in text for token in ("substack", "blog", "博客", "个人", "simon willison", "latent space")):
+        return "个人观点"
+    if source_type:
+        return source_type
+    return "未分类来源"
 
 
 def _direction_id(label: str) -> str:

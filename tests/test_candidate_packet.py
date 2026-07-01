@@ -31,6 +31,9 @@ def test_candidate_packet_is_staging_input_not_final_report() -> None:
     assert "Morning Brief Renderer" in markdown
     assert "优先离散内部不同论点" in markdown
     assert "最多显性关联 3 个深度阅读 D 卡" in markdown
+    assert "核心论点" in markdown
+    assert "对我们的影响" in markdown
+    assert "来源分类" in markdown
     assert "深度阅读区是一源一卡" in markdown
     assert "核心阅读区只能链接到深度阅读区 D 卡" in markdown
     assert "100-200 字中文 abstract" in markdown

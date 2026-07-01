@@ -302,7 +302,7 @@ function renderCoreItems(report) {
 }
 
 function renderDeepItems(report) {
-  const items = filterItems(report.deep_items, ["title", "body", "recommendation_reason", "risk"]);
+  const items = filterItems(report.deep_items, ["title", "body", "core_argument", "impact", "recommendation_reason", "risk", "source_category"]);
   if (!items.length) {
     nodes.deepList.innerHTML = `<div class="emptyState">没有匹配的深度阅读卡。</div>`;
     return;
@@ -310,17 +310,31 @@ function renderDeepItems(report) {
   nodes.deepList.innerHTML = items
     .map((item) => {
       const matchedDirection = bestDirectionForItem(item);
+      const sourceCategory = item.source_category || sourceCategoryForDeepItem(report, item);
+      const coreArgument = item.core_argument || item.body || "";
+      const impact = item.impact || item.recommendation_reason || "";
       return `
       <article class="card deepCard" id="${escapeHtml(item.id)}">
         <div class="deepTop">
           <span class="deepBadge">${escapeHtml(item.id)}</span>
           <div>
-            <div class="cardMeta">${escapeHtml(matchedDirection.shortLabel)}</div>
+            <div class="cardMeta">
+              <span>${escapeHtml(matchedDirection.shortLabel)}</span>
+              <span class="sourceCategory">${escapeHtml(sourceCategory)}</span>
+            </div>
             <h3>${escapeHtml(item.title)}</h3>
           </div>
         </div>
-        <p class="abstract">${escapeHtml(item.body)}</p>
-        <p class="reason">${escapeHtml(item.recommendation_reason)}</p>
+        <div class="deepSections">
+          <section class="deepSection">
+            <h4>核心论点</h4>
+            <p>${escapeHtml(coreArgument)}</p>
+          </section>
+          <section class="deepSection">
+            <h4>对我们的影响</h4>
+            <p>${escapeHtml(impact)}</p>
+          </section>
+        </div>
         <div class="deepMeta">
           <span class="tag">证据强度 ${escapeHtml(item.evidence_strength || "unknown")}</span>
           <span class="tag risk">${escapeHtml(item.risk || "未标注风险")}</span>
@@ -490,6 +504,7 @@ function itemText(item) {
     item.evidence_strength,
     item.direction_id,
     item.direction_label,
+    item.source_category,
     item.source_label,
     item.source_type,
     item.usage,
@@ -529,6 +544,14 @@ function sourceLabelFromUrl(url) {
   } catch {
     return "";
   }
+}
+
+function sourceCategoryForDeepItem(report, deepItem) {
+  const evidence = report.evidence_items.find((item) => item.id === deepItem.evidence_id);
+  if (!evidence) {
+    return deepItem.source_category || "未分类来源";
+  }
+  return evidence.source_category || evidence.source_type || "未分类来源";
 }
 
 function renderIcon(iconName) {
@@ -812,6 +835,7 @@ function openEvidence(evidenceId) {
   nodes.drawerTitle.textContent = evidence.title;
   nodes.drawerBody.innerHTML = `
     <p class="evidenceLine">来源：${escapeHtml(evidence.source_label || sourceLabelFromUrl(evidence.url) || "未知")}</p>
+    <p class="evidenceLine">来源分类：${escapeHtml(evidence.source_category || evidence.source_type || "未分类来源")}</p>
     <p class="evidenceLine">来源类型：${escapeHtml(evidence.source_type || "未知")}</p>
     <p class="evidenceLine">发布时间：${escapeHtml(evidence.published_at || "未知")}</p>
     <p class="evidenceLine">软文风险：${escapeHtml(evidence.ad_risk || "未标注")}</p>

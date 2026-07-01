@@ -654,6 +654,26 @@ h3 {
   font-weight: 650;
 }
 
+.deepTop .cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.sourceCategory {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 2px 7px;
+  border: 1px solid rgba(0, 143, 140, 0.14);
+  border-radius: 999px;
+  background: rgba(0, 143, 140, 0.07);
+  color: var(--radar-deep);
+  font-size: 11px;
+  font-weight: 760;
+}
+
 .abstract {
   margin-bottom: 0;
   color: var(--ink-soft);
@@ -778,6 +798,30 @@ h3 {
 .deepCard .reason {
   font-size: 14px;
   line-height: 1.68;
+}
+
+.deepSections {
+  display: grid;
+  gap: 10px;
+}
+
+.deepSection {
+  min-width: 0;
+}
+
+.deepSection h4 {
+  margin: 0 0 4px;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 780;
+}
+
+.deepSection p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.72;
 }
 
 .deepMeta {
