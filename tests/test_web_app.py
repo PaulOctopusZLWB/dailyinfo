@@ -36,6 +36,7 @@ def write_report(path: Path, date: str, title: str) -> None:
                         "abstract": "核心阅读区正文，强调应用栈风险。",
                         "recommendation_reason": "这会影响 agent 权限边界。",
                         "deep_ids": ["D1"],
+                        "direction_id": "macro",
                     }
                 ],
                 "deep_items": [
@@ -47,6 +48,7 @@ def write_report(path: Path, date: str, title: str) -> None:
                         "evidence_strength": "high",
                         "risk": "未见明显推广。",
                         "evidence_id": "E1",
+                        "direction_id": "macro",
                     }
                 ],
                 "evidence_items": [
@@ -59,6 +61,8 @@ def write_report(path: Path, date: str, title: str) -> None:
                         "published_at": "2026-06-30T13:21:43Z",
                         "ad_risk": "未见明显推广",
                         "usage": "支持应用栈风险判断。",
+                        "direction_label": "宏观 AI 前沿论点",
+                        "direction_id": "macro",
                     }
                 ],
             },
@@ -169,7 +173,12 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "getLayerCounts" in js
     assert "statNumber" in js
     assert "formatNumberOrDash" in js
+    assert "directionById" in js
+    assert "directionByLabel" in js
+    assert "normalizeDirectionLabel" in js
     assert "visibleEvidenceItems" in js
+    assert "direction_id" in js
+    assert "direction_label" in js
     assert "source_label" in js
     assert "源状态" in js
     assert "候选池" in js

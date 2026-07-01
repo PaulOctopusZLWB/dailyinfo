@@ -396,8 +396,6 @@ function buildReportDirectionCounts(report) {
     counts.set(direction.id, 0);
   });
 
-  const deepById = new Map(report.deep_items.map((item) => [item.id, item]));
-  const evidenceById = new Map(report.evidence_items.map((item) => [item.id, item]));
   const counted = new Set();
   const add = (itemType, item, direction) => {
     const key = `${itemType}:${item.id}`;
@@ -409,19 +407,7 @@ function buildReportDirectionCounts(report) {
   };
 
   report.core_items.forEach((coreItem) => {
-    const direction = bestDirectionForItem(coreItem);
-    add("core", coreItem, direction);
-    (coreItem.deep_ids || []).forEach((deepId) => {
-      const deepItem = deepById.get(deepId);
-      if (!deepItem) {
-        return;
-      }
-      add("deep", deepItem, direction);
-      const evidenceItem = evidenceById.get(deepItem.evidence_id);
-      if (evidenceItem) {
-        add("evidence", evidenceItem, direction);
-      }
-    });
+    add("core", coreItem, bestDirectionForItem(coreItem));
   });
 
   report.deep_items.forEach((deepItem) => {
@@ -438,6 +424,18 @@ function bestDirectionForItem(item) {
 }
 
 function bestDirectionsForItem(item) {
+  if (item.direction_id) {
+    const direction = directionById(item.direction_id);
+    if (direction) {
+      return [direction];
+    }
+  }
+  if (item.direction_label) {
+    const direction = directionByLabel(item.direction_label);
+    if (direction) {
+      return [direction];
+    }
+  }
   const text = itemText(item).toLowerCase();
   const matches = DIRECTIONS.filter((direction) => direction.id !== "all")
     .map((direction) => ({
@@ -448,6 +446,34 @@ function bestDirectionsForItem(item) {
     .sort((a, b) => b.score - a.score)
     .map((entry) => entry.direction);
   return matches.length ? matches : [DIRECTIONS[1]];
+}
+
+function directionById(directionId) {
+  return DIRECTIONS.find((direction) => direction.id === directionId);
+}
+
+function directionByLabel(label) {
+  const normalized = normalizeDirectionLabel(label);
+  const aliases = {
+    "宏观ai前沿论点": "macro",
+    "时序智能": "timeseries",
+    "时序模型时序算法时序认知时序应用前沿": "timeseries",
+    "工业软件ai": "industrial",
+    "工业控制软件ai结合前沿": "industrial",
+    "aiagent生态": "agent",
+    "最佳使用aiagent的github库方法论认知讨论重要观点": "agent",
+    "数字孪生": "twin",
+    "面向人类的数字孪生": "twin",
+    "ai时代的泛哲学讨论": "philosophy",
+    "泛哲学讨论": "philosophy",
+  };
+  return directionById(aliases[normalized]);
+}
+
+function normalizeDirectionLabel(label) {
+  return String(label || "")
+    .toLowerCase()
+    .replace(/[\s+＋、，,·/／\-—_]/g, "");
 }
 
 function itemMatchesDirection(item, directionId) {
@@ -462,6 +488,8 @@ function itemText(item) {
     item.recommendation_reason,
     item.risk,
     item.evidence_strength,
+    item.direction_id,
+    item.direction_label,
     item.source_label,
     item.source_type,
     item.usage,

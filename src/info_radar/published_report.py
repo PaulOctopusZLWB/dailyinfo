@@ -1,6 +1,6 @@
 import json
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -14,6 +14,7 @@ class CoreItem:
     abstract: str
     recommendation_reason: str
     deep_ids: list[str]
+    direction_id: str = ""
 
 
 @dataclass(frozen=True)
@@ -25,6 +26,7 @@ class DeepItem:
     evidence_strength: str
     risk: str
     evidence_id: str
+    direction_id: str = ""
 
 
 @dataclass(frozen=True)
@@ -37,6 +39,8 @@ class EvidenceItem:
     published_at: str
     ad_risk: str
     usage: str
+    direction_label: str = ""
+    direction_id: str = ""
 
 
 @dataclass(frozen=True)
@@ -70,9 +74,9 @@ def parse_published_report(
     core_section = _section(markdown, "## 核心阅读区", "## 深度阅读区")
     deep_section = _section(markdown, "## 深度阅读区", "## 证据区")
     evidence_section = _section(markdown, "## 证据区", "")
-    core_items = _parse_core_items(core_section)
-    deep_items = _parse_deep_items(deep_section)
     evidence_items = _parse_evidence_items(evidence_section)
+    deep_items = _attach_deep_directions(_parse_deep_items(deep_section), evidence_items)
+    core_items = _attach_core_directions(_parse_core_items(core_section), deep_items)
     stats = dict(run_stats or {})
     stats.update(
         {
@@ -151,6 +155,7 @@ def _parse_evidence_items(section: str) -> list[EvidenceItem]:
         _, bullets = _split_bullets(body)
         original = bullets.get("原文", "") or bullets.get("来源", "")
         url = _extract_markdown_url(original) or original
+        direction_label = bullets.get("方向标签", "")
         items.append(
             EvidenceItem(
                 id=item_id,
@@ -161,9 +166,33 @@ def _parse_evidence_items(section: str) -> list[EvidenceItem]:
                 published_at=bullets.get("发布时间", ""),
                 ad_risk=bullets.get("软文风险", ""),
                 usage=bullets.get("用途", ""),
+                direction_label=direction_label,
+                direction_id=_direction_id(direction_label),
             )
         )
     return items
+
+
+def _attach_deep_directions(deep_items: list[DeepItem], evidence_items: list[EvidenceItem]) -> list[DeepItem]:
+    evidence_by_id = {item.id: item for item in evidence_items}
+    attached = []
+    for item in deep_items:
+        evidence = evidence_by_id.get(item.evidence_id)
+        attached.append(replace(item, direction_id=evidence.direction_id if evidence else ""))
+    return attached
+
+
+def _attach_core_directions(core_items: list[CoreItem], deep_items: list[DeepItem]) -> list[CoreItem]:
+    deep_by_id = {item.id: item for item in deep_items}
+    attached = []
+    for item in core_items:
+        direction_id = ""
+        for deep_id in item.deep_ids:
+            direction_id = deep_by_id.get(deep_id, DeepItem("", "", "", "", "", "", "")).direction_id
+            if direction_id:
+                break
+        attached.append(replace(item, direction_id=direction_id))
+    return attached
 
 
 def _iter_heading_blocks(section: str, heading_re: re.Pattern) -> list[tuple[str, str, str]]:
@@ -263,6 +292,27 @@ def _source_label(url: str, source_type: str, title: str) -> str:
     if host:
         return host
     return source_type or title or "未标注来源"
+
+
+def _direction_id(label: str) -> str:
+    normalized = re.sub(r"[\s+＋、，,·/／\-—_]", "", (label or "").lower())
+    if not normalized:
+        return ""
+    mappings = {
+        "宏观ai前沿论点": "macro",
+        "宏观a前沿论点": "macro",
+        "时序智能": "timeseries",
+        "时序模型时序算法时序认知时序应用前沿": "timeseries",
+        "工业软件ai": "industrial",
+        "工业控制软件ai结合前沿": "industrial",
+        "aiagent生态": "agent",
+        "最佳使用aiagent的github库方法论认知讨论重要观点": "agent",
+        "数字孪生": "twin",
+        "面向人类的数字孪生": "twin",
+        "ai时代的泛哲学讨论": "philosophy",
+        "泛哲学讨论": "philosophy",
+    }
+    return mappings.get(normalized, "")
 
 
 def _clean_body(text: str) -> str:

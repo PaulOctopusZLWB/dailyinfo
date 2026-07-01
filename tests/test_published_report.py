@@ -27,6 +27,7 @@ SAMPLE = """# 2026-07-01 信息雷达晨报
 - 原文：[A Lifecycle Survey](http://arxiv.org/abs/2606.31639v1)
 - 来源类型：arXiv 论文
 - 发布时间：2026-06-30T13:21:43Z
+- 方向标签：宏观 AI 前沿论点
 - 软文风险：未见明显推广
 - 用途：支持应用栈风险判断。
 """
@@ -52,9 +53,11 @@ def test_parse_published_report_extracts_three_layers(tmp_path: Path) -> None:
     assert report.core_items[0].number == 1
     assert report.core_items[0].title == "LLM 风险正在转向应用栈"
     assert report.core_items[0].deep_ids == ["D1"]
+    assert report.core_items[0].direction_id == "macro"
     assert report.core_items[0].recommendation_reason == "这会影响 agent 权限和工具调用边界。"
     assert report.deep_items[0].id == "D1"
     assert report.deep_items[0].evidence_id == "E1"
+    assert report.deep_items[0].direction_id == "macro"
     assert report.deep_items[0].evidence_strength == "high"
     assert report.deep_items[0].recommendation_reason == "它把风险从模型层抬升到应用栈层。"
     assert report.deep_items[0].risk == "未见明显推广。"
@@ -63,6 +66,8 @@ def test_parse_published_report_extracts_three_layers(tmp_path: Path) -> None:
     assert report.evidence_items[0].source_label == "arXiv"
     assert report.evidence_items[0].source_type == "arXiv 论文"
     assert report.evidence_items[0].published_at == "2026-06-30T13:21:43Z"
+    assert report.evidence_items[0].direction_label == "宏观 AI 前沿论点"
+    assert report.evidence_items[0].direction_id == "macro"
     assert report.evidence_items[0].ad_risk == "未见明显推广"
     assert report.evidence_items[0].usage == "支持应用栈风险判断。"
 
@@ -78,3 +83,4 @@ def test_write_published_report_json_writes_date_file(tmp_path: Path) -> None:
     assert '"evidence_items"' in text
     assert '"run_stats"' in text
     assert '"source_label": "arXiv"' in text
+    assert '"direction_id": "macro"' in text
