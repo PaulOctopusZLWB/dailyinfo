@@ -105,6 +105,8 @@ launchctl kickstart -k "gui/$(id -u)/com.paul.info-radar-web"
 
 `http://10.10.172.168:8787/`
 
+读者页会记录匿名阅读行为，用于改进信息质量和源权重。事件写入 `.info_radar/analytics/events.jsonl`，默认只保存匿名 session、页面/卡片停留、来源打开、筛选搜索和最多 120 字的划取摘要，不保存用户姓名或完整鼠标轨迹。
+
 ## v0 Boundaries
 
 - 定时任务由 Codex automation 负责触发；`run` 和 `publish` 仍保持可手动复跑。

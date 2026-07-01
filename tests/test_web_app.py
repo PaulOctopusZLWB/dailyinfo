@@ -102,6 +102,72 @@ def test_web_api_serves_reports_and_search(tmp_path: Path) -> None:
     assert search["results"][0]["item_type"] == "core"
 
 
+def test_web_api_records_and_summarizes_reader_analytics(tmp_path: Path) -> None:
+    reports_dir = tmp_path / "published"
+    analytics_path = tmp_path / "analytics" / "events.jsonl"
+    write_report(reports_dir, "2026-07-01", "2026-07-01 信息雷达晨报")
+    client = TestClient(create_app(reports_dir=reports_dir, static_dir=None, analytics_path=analytics_path))
+
+    response = client.post(
+        "/api/analytics/events",
+        json={
+            "events": [
+                {
+                    "event_type": "page_view",
+                    "session_id": "session-a",
+                    "report_date": "2026-07-01",
+                    "created_at": "2026-07-01T08:00:00+08:00",
+                },
+                {
+                    "event_type": "item_view",
+                    "session_id": "session-a",
+                    "report_date": "2026-07-01",
+                    "item_layer": "deep",
+                    "item_id": "D11",
+                    "direction_id": "timeseries",
+                    "source_category": "学术论文",
+                    "duration_ms": 4200,
+                    "created_at": "2026-07-01T08:00:03+08:00",
+                },
+                {
+                    "event_type": "text_select",
+                    "session_id": "session-a",
+                    "report_date": "2026-07-01",
+                    "item_layer": "deep",
+                    "item_id": "D11",
+                    "selected_text_excerpt": "x" * 240,
+                    "selected_text_length": 240,
+                    "created_at": "2026-07-01T08:00:05+08:00",
+                },
+                {
+                    "event_type": "source_open",
+                    "session_id": "session-a",
+                    "report_date": "2026-07-01",
+                    "item_layer": "evidence",
+                    "item_id": "E11",
+                    "created_at": "2026-07-01T08:00:06+08:00",
+                },
+            ]
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"accepted": 4}
+    assert analytics_path.exists()
+
+    summary = client.get("/api/analytics/summary", params={"date": "2026-07-01"}).json()
+    assert summary["report_date"] == "2026-07-01"
+    assert summary["active_sessions"] == 1
+    assert summary["item_view_ms"] == 4200
+    assert summary["source_opens"] == 1
+    assert summary["text_selections"] == 1
+    assert summary["top_items"][0]["item_id"] == "D11"
+    assert summary["top_items"][0]["duration_ms"] == 4200
+
+    stored_event = analytics_path.read_text(encoding="utf-8").splitlines()[2]
+    assert '"selected_text_excerpt": "' + ("x" * 120) + '"' in stored_event
+
+
 def test_web_api_returns_404_for_missing_report(tmp_path: Path) -> None:
     client = TestClient(create_app(reports_dir=tmp_path / "published", static_dir=None))
 
@@ -134,6 +200,8 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "重点判断" in response.text
     assert "来源解读" in response.text
     assert "处理统计" in response.text
+    assert "阅读热度" in response.text
+    assert 'id="analyticsSummary"' in response.text
     assert 'id="readingPath"' in response.text
     assert 'id="morningTitle"' in response.text
     assert '<span class="pathIcon">1</span>' not in response.text
@@ -159,6 +227,9 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "prefers-reduced-motion" in css
     assert "runStats" in css
     assert "statItem" in css
+    assert "analyticsSummary" in css
+    assert "heatGrid" in css
+    assert "topReadList" in css
 
     js = Path("web/app.js").read_text(encoding="utf-8")
     assert "initAsciiMesh" in js
@@ -173,6 +244,13 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "可读线索" in js
     assert "renderRunStats" in js
     assert "renderReadingPath" in js
+    assert "renderAnalyticsSummary" in js
+    assert "trackEvent" in js
+    assert "IntersectionObserver" in js
+    assert "sendBeacon" in js
+    assert "selectionchange" in js
+    assert "/api/analytics/events" in js
+    assert "/api/analytics/summary" in js
     assert "renderIcon" in js
     assert "DIRECTION_ICONS" in js
     assert "buildReportDirectionCounts" in js

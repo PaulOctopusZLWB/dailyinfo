@@ -1,8 +1,16 @@
 const state = {
   report: null,
   reports: [],
+  analyticsSummary: null,
   activeQuery: "",
   activeDirection: "all",
+  sessionId: getOrCreateSessionId(),
+  eventQueue: [],
+  visibleItems: new Map(),
+  itemObserver: null,
+  lastHeartbeatAt: Date.now(),
+  searchTimer: 0,
+  selectionTimer: 0,
 };
 
 const nodes = {
@@ -19,6 +27,7 @@ const nodes = {
   sectionEnd: document.querySelector("#sectionEnd"),
   readingPath: document.querySelector("#readingPath"),
   sourceList: document.querySelector("#sourceList"),
+  analyticsSummary: document.querySelector("#analyticsSummary"),
   drawer: document.querySelector("#evidenceDrawer"),
   drawerTitle: document.querySelector("#drawerTitle"),
   drawerBody: document.querySelector("#drawerBody"),
@@ -122,8 +131,10 @@ async function loadInitialReport() {
   ]);
   state.reports = reports;
   state.report = latest;
+  state.analyticsSummary = await fetchAnalyticsSummary(latest.date);
   renderDateSelect();
   renderReport();
+  trackEvent("page_view", { report_date: latest.date });
 }
 
 function renderDateSelect() {
@@ -145,7 +156,9 @@ function renderReport() {
   renderCoreItems(report);
   renderDeepItems(report);
   renderRunStats(report);
+  renderAnalyticsSummary();
   renderSources(report);
+  setupItemTracking();
 }
 
 function renderSummaryChips(report) {
@@ -283,6 +296,7 @@ function renderCoreItems(report) {
       const matchedDirection = bestDirectionForItem(item);
       return `
         <article class="card coreCard" id="${escapeHtml(item.id)}">
+          <span class="trackTarget" data-track-layer="core" data-track-id="${escapeHtml(item.id)}" data-track-direction="${escapeHtml(item.direction_id || matchedDirection.id)}" data-track-source-category=""></span>
           <div class="coreNumber">
             <span>${escapeHtml(item.number)}</span>
           </div>
@@ -315,6 +329,7 @@ function renderDeepItems(report) {
       const impact = item.impact || item.recommendation_reason || "";
       return `
       <article class="card deepCard" id="${escapeHtml(item.id)}">
+        <span class="trackTarget" data-track-layer="deep" data-track-id="${escapeHtml(item.id)}" data-track-direction="${escapeHtml(item.direction_id || matchedDirection.id)}" data-track-source-category="${escapeHtml(sourceCategory)}"></span>
         <div class="deepTop">
           <span class="deepBadge">${escapeHtml(item.id)}</span>
           <div>
@@ -375,6 +390,37 @@ function renderSources(report) {
       `,
     )
     .join("");
+}
+
+function renderAnalyticsSummary() {
+  if (!nodes.analyticsSummary) {
+    return;
+  }
+  const summary = state.analyticsSummary;
+  if (!summary) {
+    nodes.analyticsSummary.innerHTML = `<div class="emptyState compact">暂无阅读数据。</div>`;
+    return;
+  }
+  const topItems = (summary.top_items || [])
+    .slice(0, 3)
+    .map(
+      (item) => `
+        <li>
+          <strong>${escapeHtml(item.item_id)}</strong>
+          <span>${escapeHtml(formatDuration(item.duration_ms))} · ${formatNumber(item.views || 0)} 次</span>
+        </li>
+      `,
+    )
+    .join("");
+  nodes.analyticsSummary.innerHTML = `
+    <div class="heatGrid">
+      <div class="heatItem"><span>会话</span><strong>${formatNumber(summary.active_sessions || 0)}</strong></div>
+      <div class="heatItem"><span>阅读</span><strong>${escapeHtml(formatDuration((summary.page_active_ms || 0) + (summary.item_view_ms || 0)))}</strong></div>
+      <div class="heatItem"><span>划取</span><strong>${formatNumber(summary.text_selections || 0)}</strong></div>
+      <div class="heatItem"><span>来源</span><strong>${formatNumber(summary.source_opens || 0)}</strong></div>
+    </div>
+    <ol class="topReadList">${topItems || "<li><span>暂无高热条目</span></li>"}</ol>
+  `;
 }
 
 function filterItems(items, fields) {
@@ -606,6 +652,160 @@ function formatFailureDetail(failedSources) {
     return "无失败源";
   }
   return `${formatNumber(failedSources)} 个失败`;
+}
+
+function formatDuration(milliseconds) {
+  const seconds = Math.max(0, Math.round(Number(milliseconds || 0) / 1000));
+  if (seconds < 60) {
+    return `${seconds}s`;
+  }
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  return rest ? `${minutes}m${rest}s` : `${minutes}m`;
+}
+
+async function fetchAnalyticsSummary(reportDate) {
+  try {
+    return await fetchJson(`/api/analytics/summary?date=${encodeURIComponent(reportDate)}`);
+  } catch {
+    return null;
+  }
+}
+
+function getOrCreateSessionId() {
+  const key = "info_radar_session_id";
+  try {
+    const existing = window.localStorage.getItem(key);
+    if (existing) {
+      return existing;
+    }
+    const created = `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+    window.localStorage.setItem(key, created);
+    return created;
+  } catch {
+    return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+
+function trackEvent(eventType, payload = {}) {
+  if (!state.report) {
+    return;
+  }
+  const event = {
+    event_type: eventType,
+    session_id: state.sessionId,
+    report_date: state.report.date,
+    created_at: new Date().toISOString(),
+    scroll_depth: currentScrollDepth(),
+    ...payload,
+  };
+  state.eventQueue.push(event);
+  if (state.eventQueue.length >= 8) {
+    flushAnalyticsEvents();
+  }
+}
+
+function flushAnalyticsEvents(useBeacon = false) {
+  if (!state.eventQueue.length) {
+    return;
+  }
+  const events = state.eventQueue.splice(0, state.eventQueue.length);
+  const body = JSON.stringify({ events });
+  if (useBeacon && navigator.sendBeacon) {
+    navigator.sendBeacon("/api/analytics/events", new Blob([body], { type: "application/json" }));
+    return;
+  }
+  fetch("/api/analytics/events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    keepalive: true,
+  }).catch(() => {
+    state.eventQueue.unshift(...events.slice(-20));
+  });
+}
+
+function setupItemTracking() {
+  if (state.itemObserver) {
+    state.itemObserver.disconnect();
+    state.itemObserver = null;
+  }
+  flushVisibleItemDurations();
+  if (!("IntersectionObserver" in window)) {
+    return;
+  }
+  state.itemObserver = new IntersectionObserver(handleItemIntersections, {
+    threshold: [0, 0.35, 0.7],
+  });
+  document.querySelectorAll(".trackTarget").forEach((target) => {
+    const card = target.closest(".card");
+    if (card) {
+      state.itemObserver.observe(card);
+    }
+  });
+}
+
+function handleItemIntersections(entries) {
+  const now = Date.now();
+  entries.forEach((entry) => {
+    const target = entry.target.querySelector(".trackTarget");
+    if (!target) {
+      return;
+    }
+    const itemKey = `${target.dataset.trackLayer}:${target.dataset.trackId}`;
+    if (entry.isIntersecting && entry.intersectionRatio >= 0.35) {
+      if (!state.visibleItems.has(itemKey)) {
+        state.visibleItems.set(itemKey, {
+          startedAt: now,
+          item_layer: target.dataset.trackLayer,
+          item_id: target.dataset.trackId,
+          direction_id: target.dataset.trackDirection,
+          source_category: target.dataset.trackSourceCategory,
+        });
+      }
+      return;
+    }
+    flushVisibleItemDuration(itemKey, now);
+  });
+}
+
+function flushVisibleItemDurations() {
+  const now = Date.now();
+  Array.from(state.visibleItems.keys()).forEach((itemKey) => flushVisibleItemDuration(itemKey, now));
+}
+
+function flushVisibleItemDuration(itemKey, now = Date.now()) {
+  const visible = state.visibleItems.get(itemKey);
+  if (!visible) {
+    return;
+  }
+  state.visibleItems.delete(itemKey);
+  const duration = now - visible.startedAt;
+  if (duration < 900) {
+    return;
+  }
+  trackEvent("item_view", {
+    item_layer: visible.item_layer,
+    item_id: visible.item_id,
+    direction_id: visible.direction_id,
+    source_category: visible.source_category,
+    duration_ms: duration,
+  });
+}
+
+function currentScrollDepth() {
+  const scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+  return Math.round(Math.min(100, Math.max(0, window.scrollY / scrollable) * 100));
+}
+
+function refreshAnalyticsSummaryLater() {
+  window.setTimeout(async () => {
+    if (!state.report) {
+      return;
+    }
+    state.analyticsSummary = await fetchAnalyticsSummary(state.report.date);
+    renderAnalyticsSummary();
+  }, 900);
 }
 
 function initAsciiMesh() {
@@ -844,6 +1044,14 @@ function openEvidence(evidenceId) {
   `;
   nodes.drawer.classList.add("is-open");
   nodes.drawer.setAttribute("aria-hidden", "false");
+  trackEvent("source_open", {
+    item_layer: "evidence",
+    item_id: evidence.id,
+    direction_id: evidence.direction_id,
+    source_category: evidence.source_category || evidence.source_type || "",
+  });
+  flushAnalyticsEvents();
+  refreshAnalyticsSummaryLater();
 }
 
 function focusDeepCard(deepId) {
@@ -857,12 +1065,19 @@ function focusDeepCard(deepId) {
 }
 
 nodes.dateSelect.addEventListener("change", async (event) => {
+  flushVisibleItemDurations();
   state.report = await fetchJson(`/api/reports/${event.target.value}`);
+  state.analyticsSummary = await fetchAnalyticsSummary(state.report.date);
+  trackEvent("page_view", { report_date: state.report.date });
   renderReport();
 });
 
 nodes.searchInput.addEventListener("input", (event) => {
   state.activeQuery = event.target.value;
+  window.clearTimeout(state.searchTimer);
+  state.searchTimer = window.setTimeout(() => {
+    trackEvent("search", { duration_ms: 0, selected_text_length: state.activeQuery.length });
+  }, 600);
   renderReport();
 });
 
@@ -872,6 +1087,7 @@ nodes.categoryTabs.addEventListener("click", (event) => {
     return;
   }
   state.activeDirection = button.dataset.directionId;
+  trackEvent("filter", { direction_id: state.activeDirection });
   renderCategoryTabs();
   renderReport();
 });
@@ -880,6 +1096,7 @@ document.addEventListener("click", (event) => {
   const metricButton = event.target.closest(".metricCard[data-direction-id]");
   if (metricButton) {
     state.activeDirection = metricButton.dataset.directionId;
+    trackEvent("filter", { direction_id: state.activeDirection });
     renderCategoryTabs();
     renderReport();
   }
@@ -896,6 +1113,59 @@ document.addEventListener("click", (event) => {
 nodes.closeDrawer.addEventListener("click", () => {
   nodes.drawer.classList.remove("is-open");
   nodes.drawer.setAttribute("aria-hidden", "true");
+});
+
+document.addEventListener("selectionchange", () => {
+  window.clearTimeout(state.selectionTimer);
+  state.selectionTimer = window.setTimeout(() => {
+    const selection = window.getSelection();
+    const selectedText = String(selection || "").trim();
+    if (selectedText.length < 8) {
+      return;
+    }
+    const range = selection.rangeCount ? selection.getRangeAt(0) : null;
+    const container = range ? range.commonAncestorContainer : null;
+    const element = container && container.nodeType === Node.ELEMENT_NODE ? container : container?.parentElement;
+    const card = element?.closest?.(".card");
+    const target = card?.querySelector?.(".trackTarget");
+    trackEvent("text_select", {
+      item_layer: target?.dataset.trackLayer || "",
+      item_id: target?.dataset.trackId || "",
+      direction_id: target?.dataset.trackDirection || "",
+      source_category: target?.dataset.trackSourceCategory || "",
+      selected_text_excerpt: selectedText.slice(0, 120),
+      selected_text_length: selectedText.length,
+    });
+    flushAnalyticsEvents();
+    refreshAnalyticsSummaryLater();
+  }, 700);
+});
+
+window.setInterval(() => {
+  const now = Date.now();
+  if (document.visibilityState === "visible") {
+    trackEvent("page_heartbeat", { duration_ms: now - state.lastHeartbeatAt });
+    flushAnalyticsEvents();
+  }
+  state.lastHeartbeatAt = now;
+}, 15000);
+
+document.addEventListener("visibilitychange", () => {
+  const now = Date.now();
+  if (document.visibilityState === "hidden") {
+    flushVisibleItemDurations();
+    trackEvent("page_heartbeat", { duration_ms: now - state.lastHeartbeatAt });
+    state.lastHeartbeatAt = now;
+    flushAnalyticsEvents(true);
+  } else {
+    state.lastHeartbeatAt = now;
+  }
+});
+
+window.addEventListener("beforeunload", () => {
+  flushVisibleItemDurations();
+  trackEvent("page_heartbeat", { duration_ms: Date.now() - state.lastHeartbeatAt });
+  flushAnalyticsEvents(true);
 });
 
 function escapeHtml(value) {
