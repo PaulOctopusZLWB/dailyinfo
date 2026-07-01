@@ -224,6 +224,8 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "user-select: none" in css
     assert "Reader text must stay fully readable" in css
     assert "-webkit-line-clamp: unset" in css
+    assert ".trackTarget" in css
+    assert "pointer-events: none" in css
     assert "prefers-reduced-motion" in css
     assert "runStats" in css
     assert "statItem" in css
