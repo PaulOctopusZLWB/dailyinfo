@@ -317,8 +317,7 @@ select {
   border-radius: 6px;
   background: rgba(0, 143, 140, 0.09);
   color: var(--radar-deep);
-  font-family: "SF Mono", ui-monospace, monospace;
-  font-size: 12px;
+  flex: 0 0 auto;
 }
 
 .categoryTab.is-active,
@@ -460,8 +459,18 @@ h3 {
   border-radius: 8px;
   background: var(--radar-soft);
   color: var(--radar-deep);
-  font-family: "SF Mono", ui-monospace, monospace;
-  font-weight: 820;
+}
+
+.directionIcon {
+  display: block;
+  width: 19px;
+  height: 19px;
+  vector-effect: non-scaling-stroke;
+}
+
+.categoryGlyph .directionIcon {
+  width: 14px;
+  height: 14px;
 }
 
 .metricCard:nth-child(2) .metricIcon {

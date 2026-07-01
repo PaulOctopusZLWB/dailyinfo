@@ -31,52 +31,62 @@ const DIRECTIONS = [
     id: "all",
     label: "全部",
     shortLabel: "全部",
-    icon: "A",
+    icon: "grid",
     keywords: [],
   },
   {
     id: "macro",
     label: "宏观AI前沿论点",
     shortLabel: "宏观AI前沿论点",
-    icon: "M",
+    icon: "brain",
     keywords: ["LLM", "模型", "风险", "治理", "OpenAI", "AGI", "AI 时代", "agent"],
   },
   {
     id: "timeseries",
     label: "时序智能",
     shortLabel: "时序智能",
-    icon: "T",
+    icon: "wave",
     keywords: ["时序", "预测", "TimeGPT", "Moirai", "TSMixer", "序列", "forecast"],
   },
   {
     id: "industrial",
     label: "工业软件+AI",
     shortLabel: "工业软件+AI",
-    icon: "I",
+    icon: "factory",
     keywords: ["工业", "工控", "流程", "Siemens", "AVEVA", "AspenTech", "Seeq", "优化"],
   },
   {
     id: "agent",
     label: "AI Agent 生态",
     shortLabel: "AI Agent 生态",
-    icon: "G",
+    icon: "bot",
     keywords: ["Agent", "agent", "GitHub", "SDK", "工具", "沙盒", "benchmark", "复现"],
   },
   {
     id: "twin",
     label: "数字孪生",
     shortLabel: "数字孪生",
-    icon: "D",
+    icon: "cube",
     keywords: ["数字孪生", "孪生", "个人上下文", "人类", "仿真", "上下文系统"],
   },
   {
     id: "philosophy",
     label: "AI时代的泛哲学讨论",
     shortLabel: "泛哲学讨论",
-    icon: "P",
+    icon: "orbit",
     keywords: ["哲学", "自由意志", "责任", "主体", "人机", "意识", "边界"],
   },
 ];
+
+const DIRECTION_ICONS = {
+  grid: '<path d="M4 4h6v6H4z"/><path d="M14 4h6v6h-6z"/><path d="M4 14h6v6H4z"/><path d="M14 14h6v6h-6z"/>',
+  brain: '<path d="M9 3a3 3 0 0 0-3 3v.5A3.5 3.5 0 0 0 4 13a3 3 0 0 0 2 5.2"/><path d="M15 3a3 3 0 0 1 3 3v.5A3.5 3.5 0 0 1 20 13a3 3 0 0 1-2 5.2"/><path d="M9 3v18"/><path d="M15 3v18"/><path d="M9 8H6.5"/><path d="M15 8h2.5"/><path d="M9 14H6.2"/><path d="M15 14h2.8"/>',
+  wave: '<path d="M4 12h3l2.2-6 4.2 12L16 8h4"/><path d="M4 18h16"/>',
+  factory: '<path d="M3 21h18"/><path d="M5 21V9l5 3V9l5 3V6h4v15"/><path d="M8 17h1"/><path d="M12 17h1"/><path d="M16 17h1"/>',
+  bot: '<path d="M12 8V4"/><path d="M8 4h8"/><rect x="5" y="8" width="14" height="11" rx="3"/><path d="M9 13h.01"/><path d="M15 13h.01"/><path d="M9 17h6"/><path d="M3 12h2"/><path d="M19 12h2"/>',
+  cube: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12 4 7.5"/><path d="m12 12 8-4.5"/><path d="M12 12v9"/>',
+  orbit: '<circle cx="12" cy="12" r="3"/><path d="M19 5c2.4 2.4-.2 8.8-5.7 14.3"/><path d="M5 19c-2.4-2.4.2-8.8 5.7-14.3"/><path d="M4.5 8.5c1.3-3.2 8.7-2.6 15 1.4"/><path d="M19.5 15.5c-1.3 3.2-8.7 2.6-15-1.4"/>',
+};
 
 const WAVE_GLYPHS = ["□", "▢", "▣", "▤", "▥", "▦", "▧", "▨", "▩", "❏", "❐", "❑", "❒"];
 const MESH_CELL_PITCH = 23;
@@ -157,7 +167,7 @@ function renderSummaryChips(report) {
           data-direction-id="${escapeHtml(metric.id)}"
           aria-pressed="${metric.id === state.activeDirection ? "true" : "false"}"
         >
-          <span class="metricIcon">${escapeHtml(metric.icon)}</span>
+          <span class="metricIcon" aria-hidden="true">${renderIcon(metric.icon)}</span>
           <span class="metricCopy">
             <span>${escapeHtml(metric.shortLabel)}</span>
             <strong>${formatNumber(metric.count)}</strong>
@@ -373,7 +383,7 @@ function renderCategoryTabs() {
         data-direction-id="${escapeHtml(direction.id)}"
         aria-pressed="${direction.id === state.activeDirection ? "true" : "false"}"
       >
-        <span class="categoryGlyph">${escapeHtml(direction.icon)}</span>
+        <span class="categoryGlyph" aria-hidden="true">${renderIcon(direction.icon)}</span>
         <span>${escapeHtml(direction.label)}</span>
       </button>
     `,
@@ -491,6 +501,11 @@ function sourceLabelFromUrl(url) {
   } catch {
     return "";
   }
+}
+
+function renderIcon(iconName) {
+  const paths = DIRECTION_ICONS[iconName] || DIRECTION_ICONS.grid;
+  return `<svg class="directionIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" focusable="false">${paths}</svg>`;
 }
 
 function getLayerCounts(report) {

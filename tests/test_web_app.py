@@ -163,6 +163,8 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "可读线索" in js
     assert "renderRunStats" in js
     assert "renderReadingPath" in js
+    assert "renderIcon" in js
+    assert "DIRECTION_ICONS" in js
     assert "buildReportDirectionCounts" in js
     assert "getLayerCounts" in js
     assert "statNumber" in js
@@ -174,6 +176,9 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "lookback_days || 15" not in js
     assert "来源 " in js
     assert "为什么值得读" in js
+    assert 'icon: "T"' not in js
+    assert 'icon: "M"' not in js
+    assert 'icon: "A"' not in js
     assert "深读 " not in js
     assert "高价值候选" not in js
     assert 'aria-label="收藏"' not in js
