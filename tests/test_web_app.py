@@ -114,6 +114,11 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "重点判断" in response.text
     assert "来源解读" in response.text
     assert "处理统计" in response.text
+    assert 'id="readingPath"' in response.text
+    assert 'id="morningTitle"' in response.text
+    assert '<span class="pathIcon">1</span>' not in response.text
+    assert "今日晨报" not in response.text
+    assert "今日信号" not in response.text
     assert "核心阅读区优先" not in response.text
     assert "/api/reports/latest" in response.text
     assert "我的收藏" not in response.text
@@ -147,10 +152,16 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "已整理" in js
     assert "可读线索" in js
     assert "renderRunStats" in js
+    assert "renderReadingPath" in js
+    assert "buildReportDirectionCounts" in js
+    assert "getLayerCounts" in js
+    assert "statNumber" in js
+    assert "formatNumberOrDash" in js
     assert "visibleEvidenceItems" in js
     assert "source_label" in js
     assert "源状态" in js
     assert "候选池" in js
+    assert "lookback_days || 15" not in js
     assert "来源 " in js
     assert "为什么值得读" in js
     assert "深读 " not in js

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>信息雷达</title>
-    <link rel="stylesheet" href="/assets/styles.css?v=20260701-stats" />
+    <link rel="stylesheet" href="/assets/styles.css?v=20260701-dynamic" />
   </head>
   <body>
     <div class="techBackdrop" aria-hidden="true">
@@ -18,12 +18,12 @@
           <span class="brandMark" aria-hidden="true"></span>
           <div>
             <div class="brand">信息雷达</div>
-            <div class="subtitle">今日要点与来源</div>
+            <div class="subtitle">要点与来源</div>
           </div>
         </div>
         <div class="reportControls">
           <select id="dateSelect" aria-label="选择日报日期"></select>
-          <div class="morningTitle">今日晨报</div>
+          <div id="morningTitle" class="morningTitle">晨报</div>
         </div>
         <label class="searchBox">
           <input id="searchInput" type="search" placeholder="搜索关键词、主题或来源" />
@@ -40,8 +40,8 @@
       <section class="content">
         <section class="overview dashboardPanel" aria-labelledby="overviewTitle">
           <div class="overviewCopy">
-            <h1 id="overviewTitle">今日信号</h1>
-            <p id="reportMeta">正在载入最新晨报...</p>
+            <h1 id="overviewTitle">当日信号</h1>
+            <p id="reportMeta">正在载入晨报...</p>
           </div>
           <div class="metricGrid" id="summaryChips"></div>
         </section>
@@ -54,7 +54,7 @@
             </div>
           </div>
           <div class="coreList" id="coreList"></div>
-          <div class="sectionEnd">已无更多核心判断</div>
+          <div id="sectionEnd" class="sectionEnd"></div>
         </section>
 
         <section class="readerSection deepPanel" aria-labelledby="deepTitle">
@@ -71,23 +71,7 @@
       <aside class="sideRail">
         <section class="railBlock pathBlock">
           <h2>阅读顺序</h2>
-          <ol class="pathList">
-            <li>
-              <span class="pathIcon">1</span>
-              <strong>重点判断</strong>
-              <small>先把今天的变化看清楚</small>
-            </li>
-            <li>
-              <span class="pathIcon">2</span>
-              <strong>来源解读</strong>
-              <small>需要展开时再看来源卡</small>
-            </li>
-            <li>
-              <span class="pathIcon">3</span>
-              <strong>原始来源</strong>
-              <small>核对链接、时间和出处</small>
-            </li>
-          </ol>
+          <ol id="readingPath" class="pathList"></ol>
         </section>
         <section class="railBlock">
           <h2>处理统计</h2>
@@ -111,6 +95,6 @@
       <div id="drawerBody" class="drawerBody"></div>
     </aside>
 
-    <script src="/assets/app.js?v=20260701-stats"></script>
+    <script src="/assets/app.js?v=20260701-dynamic"></script>
   </body>
 </html>

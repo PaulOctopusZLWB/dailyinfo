@@ -9,11 +9,15 @@ const nodes = {
   dateSelect: document.querySelector("#dateSelect"),
   searchInput: document.querySelector("#searchInput"),
   categoryTabs: document.querySelector("#categoryTabs"),
+  morningTitle: document.querySelector("#morningTitle"),
+  overviewTitle: document.querySelector("#overviewTitle"),
   reportMeta: document.querySelector("#reportMeta"),
   summaryChips: document.querySelector("#summaryChips"),
   runStats: document.querySelector("#runStats"),
   coreList: document.querySelector("#coreList"),
   deepList: document.querySelector("#deepList"),
+  sectionEnd: document.querySelector("#sectionEnd"),
+  readingPath: document.querySelector("#readingPath"),
   sourceList: document.querySelector("#sourceList"),
   drawer: document.querySelector("#evidenceDrawer"),
   drawerTitle: document.querySelector("#drawerTitle"),
@@ -121,10 +125,13 @@ function renderDateSelect() {
 
 function renderReport() {
   const report = state.report;
-  const totalCandidates = report.core_items.length + report.deep_items.length + report.evidence_items.length;
+  const layerCounts = getLayerCounts(report);
   document.title = `${report.date} 信息雷达`;
-  nodes.reportMeta.textContent = `${report.date} · 已整理 ${totalCandidates} 条可读线索`;
+  nodes.morningTitle.textContent = `${report.date} 晨报`;
+  nodes.overviewTitle.textContent = `${report.date} 信号`;
+  nodes.reportMeta.textContent = `${report.title || report.date} · 已整理 ${formatNumber(layerCounts.total)} 条可读线索`;
   renderSummaryChips(report);
+  renderReadingPath(report);
   renderCoreItems(report);
   renderDeepItems(report);
   renderRunStats(report);
@@ -132,8 +139,11 @@ function renderReport() {
 }
 
 function renderSummaryChips(report) {
-  const sourceCount = new Set(report.evidence_items.map((item) => item.source_type).filter(Boolean)).size;
-  const directionCounts = buildDirectionCounts(report.core_items.concat(report.deep_items));
+  const layerCounts = getLayerCounts(report);
+  const sourceCount = new Set(
+    report.evidence_items.map((item) => item.source_label || sourceLabelFromUrl(item.url) || item.source_type).filter(Boolean),
+  ).size;
+  const directionCounts = buildReportDirectionCounts(report);
   const metrics = DIRECTIONS.filter((direction) => direction.id !== "all").map((direction) => ({
     ...direction,
     count: directionCounts.get(direction.id) || 0,
@@ -150,58 +160,86 @@ function renderSummaryChips(report) {
           <span class="metricIcon">${escapeHtml(metric.icon)}</span>
           <span class="metricCopy">
             <span>${escapeHtml(metric.shortLabel)}</span>
-            <strong>${metric.count}</strong>
+            <strong>${formatNumber(metric.count)}</strong>
           </span>
         </button>
       `,
     )
     .join("");
-  nodes.summaryChips.dataset.total = String(report.core_items.length + report.deep_items.length + report.evidence_items.length);
+  nodes.summaryChips.dataset.total = String(layerCounts.total);
   nodes.summaryChips.dataset.sources = String(sourceCount);
+}
+
+function renderReadingPath(report) {
+  const counts = getLayerCounts(report);
+  const steps = [
+    {
+      title: "重点判断",
+      detail: `${formatNumber(counts.core)} 条核心判断`,
+    },
+    {
+      title: "来源解读",
+      detail: `${formatNumber(counts.deep)} 张来源卡`,
+    },
+    {
+      title: "原始来源",
+      detail: `${formatNumber(counts.evidence)} 条证据`,
+    },
+  ];
+  nodes.readingPath.innerHTML = steps
+    .map(
+      (step, index) => `
+        <li>
+          <span class="pathIcon">${formatNumber(index + 1)}</span>
+          <strong>${escapeHtml(step.title)}</strong>
+          <small>${escapeHtml(step.detail)}</small>
+        </li>
+      `,
+    )
+    .join("");
 }
 
 function renderRunStats(report) {
   const stats = report.run_stats || {};
-  const enabledSources = numberOrDash(stats.enabled_sources);
-  const completedSources = numberOrDash(stats.completed_sources);
-  const failedSources = Number(stats.failed_sources || 0);
-  const fetchedItems = numberOrDash(stats.fetched_items);
-  const withinWindow = numberOrDash(stats.within_window_items);
-  const lookbackDays = Number(stats.lookback_days || 15);
-  const dedupedItems = numberOrDash(stats.deduped_items);
-  const renderedCandidates = numberOrDash(stats.rendered_candidates);
-  const finalEvidence = Number(stats.final_evidence_items || report.evidence_items.length);
-  const finalCore = Number(stats.final_core_items || report.core_items.length);
+  const layerCounts = getLayerCounts(report);
+  const enabledSources = statNumber(stats.enabled_sources);
+  const completedSources = statNumber(stats.completed_sources);
+  const failedSources = statNumber(stats.failed_sources);
+  const fetchedItems = statNumber(stats.fetched_items);
+  const withinWindow = statNumber(stats.within_window_items);
+  const lookbackDays = statNumber(stats.lookback_days);
+  const dedupedItems = statNumber(stats.deduped_items);
+  const renderedCandidates = statNumber(stats.rendered_candidates);
 
   const rows = [
     {
       label: "源状态",
-      value: `${completedSources}/${enabledSources}`,
-      detail: failedSources ? `${failedSources} 个失败` : "无失败源",
+      value: `${formatNumberOrDash(completedSources)}/${formatNumberOrDash(enabledSources)}`,
+      detail: formatFailureDetail(failedSources),
     },
     {
       label: "原始材料",
-      value: fetchedItems,
+      value: formatNumberOrDash(fetchedItems),
       detail: "抓取与导入总量",
     },
     {
-      label: `${lookbackDays} 天窗口`,
-      value: withinWindow,
+      label: lookbackDays === null ? "时间窗口" : `${formatNumber(lookbackDays)} 天窗口`,
+      value: formatNumberOrDash(withinWindow),
       detail: "按发布时间筛选",
     },
     {
       label: "去重后",
-      value: dedupedItems,
+      value: formatNumberOrDash(dedupedItems),
       detail: "URL / 标题 / 内容聚类",
     },
     {
       label: "候选池",
-      value: renderedCandidates,
+      value: formatNumberOrDash(renderedCandidates),
       detail: "进入加工候选包",
     },
     {
       label: "晨报",
-      value: `${finalCore}/${finalEvidence}`,
+      value: `${formatNumber(layerCounts.core)}/${formatNumber(layerCounts.evidence)}`,
       detail: "核心判断 / 证据卡",
     },
   ];
@@ -223,8 +261,10 @@ function renderCoreItems(report) {
   const items = filterItems(report.core_items, ["title", "abstract", "recommendation_reason"]);
   if (!items.length) {
     nodes.coreList.innerHTML = `<div class="emptyState">没有匹配的核心阅读条目。</div>`;
+    nodes.sectionEnd.textContent = "当前筛选下没有更多核心判断";
     return;
   }
+  nodes.sectionEnd.textContent = `已显示 ${formatNumber(items.length)} 条核心判断`;
   nodes.coreList.innerHTML = items
     .map((item) => {
       const links = item.deep_ids
@@ -306,7 +346,7 @@ function renderSources(report) {
             <strong>${escapeHtml(source)}</strong>
             <small>${escapeHtml(Array.from(entry.types).join(" / ") || "来源")}</small>
           </span>
-          <span class="sourceCount">${entry.count}</span>
+          <span class="sourceCount">${formatNumber(entry.count)}</span>
         </div>
       `,
     )
@@ -340,15 +380,45 @@ function renderCategoryTabs() {
   ).join("");
 }
 
-function buildDirectionCounts(items) {
+function buildReportDirectionCounts(report) {
   const counts = new Map();
   DIRECTIONS.filter((direction) => direction.id !== "all").forEach((direction) => {
     counts.set(direction.id, 0);
   });
-  items.forEach((item) => {
-    bestDirectionsForItem(item).forEach((direction) => {
-      counts.set(direction.id, (counts.get(direction.id) || 0) + 1);
+
+  const deepById = new Map(report.deep_items.map((item) => [item.id, item]));
+  const evidenceById = new Map(report.evidence_items.map((item) => [item.id, item]));
+  const counted = new Set();
+  const add = (itemType, item, direction) => {
+    const key = `${itemType}:${item.id}`;
+    if (counted.has(key)) {
+      return;
+    }
+    counted.add(key);
+    counts.set(direction.id, (counts.get(direction.id) || 0) + 1);
+  };
+
+  report.core_items.forEach((coreItem) => {
+    const direction = bestDirectionForItem(coreItem);
+    add("core", coreItem, direction);
+    (coreItem.deep_ids || []).forEach((deepId) => {
+      const deepItem = deepById.get(deepId);
+      if (!deepItem) {
+        return;
+      }
+      add("deep", deepItem, direction);
+      const evidenceItem = evidenceById.get(deepItem.evidence_id);
+      if (evidenceItem) {
+        add("evidence", evidenceItem, direction);
+      }
     });
+  });
+
+  report.deep_items.forEach((deepItem) => {
+    add("deep", deepItem, bestDirectionForItem(deepItem));
+  });
+  report.evidence_items.forEach((evidenceItem) => {
+    add("evidence", evidenceItem, bestDirectionForItem(evidenceItem));
   });
   return counts;
 }
@@ -423,11 +493,53 @@ function sourceLabelFromUrl(url) {
   }
 }
 
-function numberOrDash(value) {
+function getLayerCounts(report) {
+  const stats = report.run_stats || {};
+  const core = statNumber(stats.final_core_items) ?? report.core_items.length;
+  const deep = statNumber(stats.final_deep_items) ?? report.deep_items.length;
+  const evidence = statNumber(stats.final_evidence_items) ?? report.evidence_items.length;
+  return {
+    core,
+    deep,
+    evidence,
+    total: core + deep + evidence,
+  };
+}
+
+function statNumber(value) {
   if (value === null || value === undefined || value === "") {
+    return null;
+  }
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) {
+    return null;
+  }
+  return numeric;
+}
+
+function formatNumber(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) {
     return "—";
   }
-  return String(value);
+  return numeric.toLocaleString("zh-CN");
+}
+
+function formatNumberOrDash(value) {
+  if (value === null || value === undefined) {
+    return "—";
+  }
+  return formatNumber(value);
+}
+
+function formatFailureDetail(failedSources) {
+  if (failedSources === null) {
+    return "失败源未记录";
+  }
+  if (failedSources === 0) {
+    return "无失败源";
+  }
+  return `${formatNumber(failedSources)} 个失败`;
 }
 
 function initAsciiMesh() {
@@ -656,6 +768,7 @@ function openEvidence(evidenceId) {
   }
   nodes.drawerTitle.textContent = evidence.title;
   nodes.drawerBody.innerHTML = `
+    <p class="evidenceLine">来源：${escapeHtml(evidence.source_label || sourceLabelFromUrl(evidence.url) || "未知")}</p>
     <p class="evidenceLine">来源类型：${escapeHtml(evidence.source_type || "未知")}</p>
     <p class="evidenceLine">发布时间：${escapeHtml(evidence.published_at || "未知")}</p>
     <p class="evidenceLine">软文风险：${escapeHtml(evidence.ad_risk || "未标注")}</p>
