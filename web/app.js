@@ -1,7 +1,6 @@
 const state = {
   report: null,
   reports: [],
-  analyticsSummary: null,
   activeQuery: "",
   activeDirection: "all",
   sessionId: getOrCreateSessionId(),
@@ -27,7 +26,6 @@ const nodes = {
   sectionEnd: document.querySelector("#sectionEnd"),
   readingPath: document.querySelector("#readingPath"),
   sourceList: document.querySelector("#sourceList"),
-  analyticsSummary: document.querySelector("#analyticsSummary"),
   drawer: document.querySelector("#evidenceDrawer"),
   drawerTitle: document.querySelector("#drawerTitle"),
   drawerBody: document.querySelector("#drawerBody"),
@@ -131,7 +129,6 @@ async function loadInitialReport() {
   ]);
   state.reports = reports;
   state.report = latest;
-  state.analyticsSummary = await fetchAnalyticsSummary(latest.date);
   renderDateSelect();
   renderReport();
   trackEvent("page_view", { report_date: latest.date });
@@ -156,7 +153,6 @@ function renderReport() {
   renderCoreItems(report);
   renderDeepItems(report);
   renderRunStats(report);
-  renderAnalyticsSummary();
   renderSources(report);
   setupItemTracking();
 }
@@ -390,37 +386,6 @@ function renderSources(report) {
       `,
     )
     .join("");
-}
-
-function renderAnalyticsSummary() {
-  if (!nodes.analyticsSummary) {
-    return;
-  }
-  const summary = state.analyticsSummary;
-  if (!summary) {
-    nodes.analyticsSummary.innerHTML = `<div class="emptyState compact">暂无阅读数据。</div>`;
-    return;
-  }
-  const topItems = (summary.top_items || [])
-    .slice(0, 3)
-    .map(
-      (item) => `
-        <li>
-          <strong>${escapeHtml(item.item_id)}</strong>
-          <span>${escapeHtml(formatDuration(item.duration_ms))} · ${formatNumber(item.views || 0)} 次</span>
-        </li>
-      `,
-    )
-    .join("");
-  nodes.analyticsSummary.innerHTML = `
-    <div class="heatGrid">
-      <div class="heatItem"><span>会话</span><strong>${formatNumber(summary.active_sessions || 0)}</strong></div>
-      <div class="heatItem"><span>阅读</span><strong>${escapeHtml(formatDuration((summary.page_active_ms || 0) + (summary.item_view_ms || 0)))}</strong></div>
-      <div class="heatItem"><span>划取</span><strong>${formatNumber(summary.text_selections || 0)}</strong></div>
-      <div class="heatItem"><span>来源</span><strong>${formatNumber(summary.source_opens || 0)}</strong></div>
-    </div>
-    <ol class="topReadList">${topItems || "<li><span>暂无高热条目</span></li>"}</ol>
-  `;
 }
 
 function filterItems(items, fields) {
@@ -664,14 +629,6 @@ function formatDuration(milliseconds) {
   return rest ? `${minutes}m${rest}s` : `${minutes}m`;
 }
 
-async function fetchAnalyticsSummary(reportDate) {
-  try {
-    return await fetchJson(`/api/analytics/summary?date=${encodeURIComponent(reportDate)}`);
-  } catch {
-    return null;
-  }
-}
-
 function getOrCreateSessionId() {
   const key = "info_radar_session_id";
   try {
@@ -798,15 +755,6 @@ function currentScrollDepth() {
   return Math.round(Math.min(100, Math.max(0, window.scrollY / scrollable) * 100));
 }
 
-function refreshAnalyticsSummaryLater() {
-  window.setTimeout(async () => {
-    if (!state.report) {
-      return;
-    }
-    state.analyticsSummary = await fetchAnalyticsSummary(state.report.date);
-    renderAnalyticsSummary();
-  }, 900);
-}
 
 function initAsciiMesh() {
   if (!nodes.meshCanvas) {
@@ -1051,7 +999,6 @@ function openEvidence(evidenceId) {
     source_category: evidence.source_category || evidence.source_type || "",
   });
   flushAnalyticsEvents();
-  refreshAnalyticsSummaryLater();
 }
 
 function focusDeepCard(deepId) {
@@ -1067,7 +1014,6 @@ function focusDeepCard(deepId) {
 nodes.dateSelect.addEventListener("change", async (event) => {
   flushVisibleItemDurations();
   state.report = await fetchJson(`/api/reports/${event.target.value}`);
-  state.analyticsSummary = await fetchAnalyticsSummary(state.report.date);
   trackEvent("page_view", { report_date: state.report.date });
   renderReport();
 });
@@ -1137,7 +1083,6 @@ document.addEventListener("selectionchange", () => {
       selected_text_length: selectedText.length,
     });
     flushAnalyticsEvents();
-    refreshAnalyticsSummaryLater();
   }, 700);
 });
 

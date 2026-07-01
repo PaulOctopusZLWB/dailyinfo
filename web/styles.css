@@ -936,67 +936,6 @@ h3 {
   gap: 8px;
 }
 
-.analyticsSummary {
-  display: grid;
-  gap: 12px;
-}
-
-.heatGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.heatItem {
-  min-width: 0;
-  padding: 10px;
-  border: 1px solid rgba(0, 143, 140, 0.12);
-  border-radius: 8px;
-  background: rgba(250, 253, 248, 0.72);
-}
-
-.heatItem span {
-  display: block;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.2;
-}
-
-.heatItem strong {
-  display: block;
-  margin-top: 4px;
-  color: var(--ink);
-  font-family: "DIN Alternate", "SF Pro Display", ui-sans-serif, system-ui, sans-serif;
-  font-size: 17px;
-  line-height: 1;
-}
-
-.topReadList {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.topReadList li {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  gap: 8px;
-  align-items: center;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.topReadList strong {
-  color: var(--radar-deep);
-  font-weight: 780;
-}
-
-.topReadList span {
-  min-width: 0;
-}
-
 .statItem {
   min-width: 0;
   padding: 10px 10px 9px;
@@ -1338,7 +1277,6 @@ h3 {
     width: fit-content;
   }
 
-  .heatGrid,
   .runStats {
     grid-template-columns: 1fr;
   }

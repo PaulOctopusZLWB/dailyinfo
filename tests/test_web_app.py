@@ -200,8 +200,8 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "重点判断" in response.text
     assert "来源解读" in response.text
     assert "处理统计" in response.text
-    assert "阅读热度" in response.text
-    assert 'id="analyticsSummary"' in response.text
+    assert "阅读热度" not in response.text
+    assert 'id="analyticsSummary"' not in response.text
     assert 'id="readingPath"' in response.text
     assert 'id="morningTitle"' in response.text
     assert '<span class="pathIcon">1</span>' not in response.text
@@ -227,9 +227,9 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "prefers-reduced-motion" in css
     assert "runStats" in css
     assert "statItem" in css
-    assert "analyticsSummary" in css
-    assert "heatGrid" in css
-    assert "topReadList" in css
+    assert "analyticsSummary" not in css
+    assert "heatGrid" not in css
+    assert "topReadList" not in css
 
     js = Path("web/app.js").read_text(encoding="utf-8")
     assert "initAsciiMesh" in js
@@ -244,13 +244,12 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "可读线索" in js
     assert "renderRunStats" in js
     assert "renderReadingPath" in js
-    assert "renderAnalyticsSummary" in js
     assert "trackEvent" in js
     assert "IntersectionObserver" in js
     assert "sendBeacon" in js
     assert "selectionchange" in js
     assert "/api/analytics/events" in js
-    assert "/api/analytics/summary" in js
+    assert "/api/analytics/summary" not in js
     assert "renderIcon" in js
     assert "DIRECTION_ICONS" in js
     assert "buildReportDirectionCounts" in js

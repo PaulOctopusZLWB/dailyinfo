@@ -20,7 +20,7 @@ The browser creates or reuses an anonymous `info_radar_session_id`. It batches c
 
 ## Reader Output
 
-The web reader adds a compact `阅读热度` rail block showing active sessions, total reading time, selected text count, source opens, and most-read items. This is a group-level signal for source weighting, not a personal dashboard.
+The web reader does not expose analytics to readers. Collection runs quietly in the background. Group-level summaries are available only through the internal `GET /api/analytics/summary` endpoint or the local `.info_radar/analytics/events.jsonl` log for later source weighting and quality analysis.
 
 ## Mobile Design
 
