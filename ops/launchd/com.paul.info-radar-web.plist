@@ -9,11 +9,11 @@
   <array>
     <string>/bin/zsh</string>
     <string>-lc</string>
-    <string>cd /Users/paul/Documents/info_radar &amp;&amp; export INFO_RADAR_ALLOWED_CLIENT_NETS="127.0.0.0/8,::1/128,10.0.0.0/8" &amp;&amp; exec /Users/paul/Documents/info_radar/.venv/bin/python -m info_radar.cli web --host 0.0.0.0 --port 8787 --reports-dir /Users/paul/Documents/info_radar/.info_radar/published --static-dir /Users/paul/Documents/info_radar/web</string>
+    <string>PROJECT_DIR="${INFO_RADAR_PROJECT_DIR:-$HOME/Documents/info_radar}" &amp;&amp; cd "$PROJECT_DIR" &amp;&amp; exec "$PROJECT_DIR/ops/bin/run-web.sh"</string>
   </array>
 
   <key>WorkingDirectory</key>
-  <string>/Users/paul/Documents/info_radar</string>
+  <string>/tmp</string>
 
   <key>RunAtLoad</key>
   <true/>
@@ -22,9 +22,9 @@
   <true/>
 
   <key>StandardOutPath</key>
-  <string>/Users/paul/Documents/info_radar/.info_radar/logs/web.out.log</string>
+  <string>/tmp/info-radar-web.out.log</string>
 
   <key>StandardErrorPath</key>
-  <string>/Users/paul/Documents/info_radar/.info_radar/logs/web.err.log</string>
+  <string>/tmp/info-radar-web.err.log</string>
 </dict>
 </plist>

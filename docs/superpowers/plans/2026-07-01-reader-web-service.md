@@ -247,7 +247,7 @@ Expected: exit 0.
 Run:
 
 ```bash
-uv run info-radar publish --date 2026-07-01 --final-file .info_radar/processed/2026-07-01-processed.md --output-dir /Users/paul/Documents/Obsidian/Supcon/信息雷达 --web-output-dir .info_radar/published
+uv run info-radar publish --date 2026-07-01 --final-file .info_radar/processed/2026-07-01-processed.md --output-dir "$INFO_RADAR_OUTPUT_DIR" --web-output-dir .info_radar/published
 ```
 
 Expected: writes `.info_radar/published/2026-07-01.json`.

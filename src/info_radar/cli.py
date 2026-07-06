@@ -15,7 +15,7 @@ from info_radar.published_report import parse_published_report, write_published_
 from info_radar.render import write_markdown
 
 
-DEFAULT_OUTPUT_DIR = Path("/Users/paul/Documents/Obsidian/Supcon/信息雷达")
+DEFAULT_OUTPUT_DIR = Path(os.environ.get("INFO_RADAR_OUTPUT_DIR", ".info_radar/reports"))
 DEFAULT_STAGING_DIR = Path(".info_radar/staging")
 DEFAULT_WEB_OUTPUT_DIR = Path(".info_radar/published")
 DEFAULT_STATIC_DIR = Path("web")

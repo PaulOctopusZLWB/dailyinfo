@@ -2,9 +2,29 @@
 
 Info Radar v0 是一个本地优先的手动决策雷达。它读取候选源池和手工导入材料，去重、评分、按六个方向分组，并生成 staging 候选包。
 
-正式 Obsidian 日报不由 `run` 直接生成。日报必须经过 Codex/LLM/人工二次加工后，再用 `publish` 写入：
+仓库只归档服务代码、源注册表、测试、前端读者页和运维脚本；真实 token、已发布 JSON、阅读行为日志、候选包和业务日报都留在本机 `.env` 或 `.info_radar/`，不会提交到 git。
 
-`/Users/paul/Documents/Obsidian/Supcon/信息雷达/YYYY-MM-DD 信息雷达.md`
+正式日报不由 `run` 直接生成。日报必须经过 Codex/LLM/人工二次加工后，再用 `publish` 写入本机配置的输出目录。
+
+## Bootstrap
+
+在新机器上拉起相似服务：
+
+```bash
+git clone https://github.com/PaulOctopusZLWB/dailyinfo.git info_radar
+cd info_radar
+uv sync --dev
+cp .env.example .env
+uv run info-radar web --host 127.0.0.1 --port 8787
+```
+
+如果要承载局域网读者页：
+
+```bash
+./ops/bin/run-web.sh
+```
+
+默认读者页读取 `.info_radar/published/*.json`。业务日报、真实 token 和已发布内容需要在每台机器上单独配置或同步，不属于本仓库内容。
 
 ## Run
 
@@ -20,7 +40,7 @@ uv run info-radar run --date 2026-07-01
 加工后的 Markdown 才能发布到 Obsidian：
 
 ```bash
-uv run info-radar publish --date 2026-07-01 --final-file path/to/processed.md
+uv run info-radar publish --date 2026-07-01 --final-file path/to/processed.md --output-dir "$INFO_RADAR_OUTPUT_DIR"
 ```
 
 `publish` 会校验正式晨报格式：
@@ -79,7 +99,7 @@ uv run info-radar web --host 127.0.0.1 --port 8787
 如果希望在本机临时挂着读者页，可以用项目脚本配合 `tmux`：
 
 ```bash
-tmux new-session -d -s info-radar-web -c /Users/paul/Documents/info_radar './ops/bin/run-web.sh'
+tmux new-session -d -s info-radar-web -c "$PWD" './ops/bin/run-web.sh'
 ```
 
 `ops/bin/run-web.sh` 默认绑定 `0.0.0.0:8787`，但应用层只允许本机和 `10.0.0.0/8` 客户端访问：
@@ -93,6 +113,7 @@ INFO_RADAR_ALLOWED_CLIENT_NETS=127.0.0.0/8,::1/128,10.0.0.0/8 ./ops/bin/run-web.
 ```bash
 mkdir -p ~/Library/LaunchAgents .info_radar/logs
 cp ops/launchd/com.paul.info-radar-web.plist ~/Library/LaunchAgents/
+launchctl setenv INFO_RADAR_PROJECT_DIR "$PWD"
 launchctl bootstrap "gui/$(id -u)" ~/Library/LaunchAgents/com.paul.info-radar-web.plist
 launchctl kickstart -k "gui/$(id -u)/com.paul.info-radar-web"
 ```
@@ -103,7 +124,7 @@ launchctl kickstart -k "gui/$(id -u)/com.paul.info-radar-web"
 
 内网访问地址示例：
 
-`http://10.10.172.168:8787/`
+`http://<this-machine-lan-ip>:8787/`
 
 读者页会记录匿名阅读行为，用于改进信息质量和源权重。事件写入 `.info_radar/analytics/events.jsonl`，默认只保存匿名 session、页面/卡片停留、来源打开、筛选搜索和最多 120 字的划取摘要，不保存用户姓名或完整鼠标轨迹。
 
