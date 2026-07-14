@@ -1,6 +1,9 @@
 import json
+import re
+from datetime import datetime
 from pathlib import Path
 from typing import Mapping, Sequence
+from zoneinfo import ZoneInfo
 
 from info_radar.directions import DIRECTION_PREFIX, DIRECTIONS
 
@@ -34,6 +37,7 @@ def render_markdown(report_date, grouped_items, summaries, failures, run_metadat
         f"- 实际输出：{sum(len(items) for items in grouped_items.values())} 条",
         f"- 抓取/导入材料：{run_metadata.get('fetched', 0)} 条",
         f"- 去重后材料：{run_metadata.get('deduped', 0)} 条",
+        *_freshness_lines(run_metadata),
         f"- 失败源：{run_metadata.get('failures', 0)} 个",
         "",
     ]
@@ -82,8 +86,86 @@ def write_markdown(output_dir, report_date, markdown):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     path = output_dir / f"{report_date} 信息雷达.md"
-    path.write_text(markdown, encoding="utf-8")
+    published_at = datetime.now(ZoneInfo("Asia/Shanghai")).isoformat(timespec="seconds")
+    path.write_text(_obsidian_report(markdown, report_date, published_at), encoding="utf-8")
     return path
+
+
+def _obsidian_report(markdown: str, report_date: str, published_at: str) -> str:
+    text = markdown.lstrip("\ufeff")
+    if text.startswith("---\n"):
+        closing = text.find("\n---\n", 4)
+        if closing < 0:
+            raise ValueError("Processed report has an unterminated YAML frontmatter block.")
+        header = text[: closing + 5]
+        required = (
+            'type: "information-radar"',
+            'status: "reference"',
+            f'date: "{report_date}"',
+            "description:",
+            'project: "FDE"',
+        )
+        missing = [field for field in required if field not in header]
+        if missing:
+            raise ValueError(f"Processed report frontmatter is not vault-compliant; missing: {', '.join(missing)}")
+        return _insert_snapshot_callout(text, published_at)
+
+    description = _radar_description(text, report_date)
+    updated = published_at[:10]
+    frontmatter = "\n".join(
+        [
+            "---",
+            f'title: "{report_date} 信息雷达"',
+            'type: "information-radar"',
+            'project: "FDE"',
+            'status: "reference"',
+            f'date: "{report_date}"',
+            f'updated: "{updated}"',
+            f"description: {json.dumps(description, ensure_ascii=False)}",
+            "tags:",
+            '  - "project/fde"',
+            '  - "domain/knowledge-management"',
+            '  - "artifact/information-radar"',
+            f'generated_on: "{published_at}"',
+            f'last_verified: "{published_at}"',
+            "---",
+            "",
+        ]
+    )
+    return frontmatter + _insert_snapshot_callout(text, published_at)
+
+
+def _radar_description(markdown: str, report_date: str) -> str:
+    in_core = False
+    for raw_line in markdown.splitlines():
+        line = raw_line.strip()
+        if line == "## 核心阅读区":
+            in_core = True
+            continue
+        if in_core and line.startswith("## "):
+            break
+        if in_core and line.startswith("### "):
+            title = re.sub(r"^\d+\.\s*", "", line[4:])
+            title = title.split("[[#", 1)[0].strip()
+            title = re.sub(r"\s+", " ", title)
+            if title:
+                return f"{report_date} 信息雷达主线：{title}"[:150]
+    return f"{report_date} 信息雷达：核心阅读、深度阅读与证据链的每日决策快照。"
+
+
+def _insert_snapshot_callout(markdown: str, published_at: str) -> str:
+    if "> 数据截止与发布校验：" in markdown:
+        return markdown
+    lines = markdown.splitlines()
+    for index, line in enumerate(lines):
+        if line.startswith("# "):
+            callout = (
+                f"> 数据截止与发布校验：{published_at}（Asia/Shanghai）。"
+                "本文为 episodic 快照，后续状态复用前须重新核验。"
+            )
+            lines[index + 1:index + 1] = ["", callout]
+            return "\n".join(lines).rstrip() + "\n"
+    return markdown.rstrip() + "\n"
 
 
 def render_candidate_packet_markdown(report_date, grouped_items, summaries, failures, run_metadata):
@@ -167,6 +249,7 @@ def render_candidate_packet_markdown(report_date, grouped_items, summaries, fail
         f"- 实际候选：{sum(len(items) for items in grouped_items.values())} 条",
         f"- 抓取/导入材料：{run_metadata.get('fetched', 0)} 条",
         f"- 去重后材料：{run_metadata.get('deduped', 0)} 条",
+        *_freshness_lines(run_metadata),
         f"- 失败源：{run_metadata.get('failures', 0)} 个",
         "",
     ]
@@ -243,6 +326,15 @@ def _target_line(summaries) -> str:
     direction_count = len(DIRECTIONS)
     total_target = direction_count * per_direction_target
     return f"候选目标：{total_target} 条（{direction_count} 个方向，每组目标 {per_direction_target} 条）"
+
+
+def _freshness_lines(run_metadata: Mapping) -> list[str]:
+    if "cross_day_excluded" not in run_metadata:
+        return []
+    return [
+        f"- 跨日排重剔除：{run_metadata.get('cross_day_excluded', 0)} 条",
+        f"- 当日新增候选池：{run_metadata.get('fresh', 0)} 条",
+    ]
 
 
 def _item_payload(item):

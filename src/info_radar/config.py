@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Tuple
+from typing import List, Optional, Tuple
 
 import yaml
 
@@ -15,6 +15,7 @@ ALLOWED_SOURCE_TYPES = {
     "rss",
     "atom",
     "arxiv",
+    "openalex",
     "github",
     "reddit",
     "youtube",
@@ -37,6 +38,10 @@ class Source:
     priority: int
     enabled: bool
     notes: str
+    include_any: Tuple[str, ...] = ()
+    include_title_any: Tuple[str, ...] = ()
+    exclude_any: Tuple[str, ...] = ()
+    github_include_issues: Optional[bool] = None
 
 
 @dataclass(frozen=True)
@@ -85,6 +90,10 @@ def _parse_source(index: int, raw: object) -> Source:
     if priority < 0 or priority > 100:
         raise RegistryError(f"source {raw['id']} priority must be between 0 and 100")
 
+    github_include_issues = raw.get("github_include_issues")
+    if github_include_issues is not None and not isinstance(github_include_issues, bool):
+        raise RegistryError(f"source {raw['id']} github_include_issues must be a boolean")
+
     return Source(
         id=str(raw["id"]),
         name=str(raw["name"]),
@@ -95,6 +104,16 @@ def _parse_source(index: int, raw: object) -> Source:
         priority=priority,
         enabled=bool(raw["enabled"]),
         notes=str(raw["notes"]),
+        include_any=_parse_optional_terms(
+            raw.get("include_any"), source_id=str(raw["id"]), field="include_any"
+        ),
+        include_title_any=_parse_optional_terms(
+            raw.get("include_title_any"), source_id=str(raw["id"]), field="include_title_any"
+        ),
+        exclude_any=_parse_optional_terms(
+            raw.get("exclude_any"), source_id=str(raw["id"]), field="exclude_any"
+        ),
+        github_include_issues=github_include_issues,
     )
 
 
@@ -106,3 +125,14 @@ def _parse_directions(value: object, source_id: str) -> Tuple[str, ...]:
     if unknown:
         raise RegistryError(f"source {source_id} has unknown direction: {', '.join(unknown)}")
     return directions
+
+
+def _parse_optional_terms(value: object, source_id: str, field: str) -> Tuple[str, ...]:
+    if value is None:
+        return ()
+    if not isinstance(value, list):
+        raise RegistryError(f"source {source_id} {field} must be a list")
+    terms = tuple(str(item).strip() for item in value)
+    if any(not term for term in terms):
+        raise RegistryError(f"source {source_id} {field} must not contain empty terms")
+    return terms

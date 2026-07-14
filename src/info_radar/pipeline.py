@@ -6,7 +6,7 @@ from typing import Dict, Iterable, List, Tuple
 from zoneinfo import ZoneInfo
 
 from info_radar.config import load_registry
-from info_radar.dedupe import dedupe_items
+from info_radar.dedupe import dedupe_items, item_identity_key
 from info_radar.directions import DIRECTIONS
 from info_radar.fetchers import fetch_source
 from info_radar.importers import import_items
@@ -68,8 +68,11 @@ def run_pipeline(
     raw_items.extend(load_imports(imports_dir))
     windowed_items = filter_recent_items(raw_items, report_date=report_date, lookback_days=lookback_days)
     deduped = dedupe_items(windowed_items)
+    history_start_date = history_window_start_date(report_date, lookback_days)
+    seen_item_keys = store.get_item_identity_keys_before(report_date, since_date=history_start_date)
+    fresh_items = exclude_previously_seen_items(deduped, seen_item_keys)
     priority_by_source = {source.id: source.priority for source in registry.sources}
-    scored = [score_item(item, source_priority=priority_by_source.get(item.source_id, 50)) for item in deduped]
+    scored = [score_item(item, source_priority=priority_by_source.get(item.source_id, 50)) for item in fresh_items]
     grouped = group_ranked_items(
         scored,
         per_direction_limit=per_direction_limit,
@@ -82,6 +85,10 @@ def run_pipeline(
         "within_window": len(windowed_items),
         "lookback_days": lookback_days,
         "deduped": len(deduped),
+        "history_window_start": history_start_date,
+        "previously_seen": len(seen_item_keys),
+        "cross_day_excluded": len(deduped) - len(fresh_items),
+        "fresh": len(fresh_items),
         "rendered": sum(len(items) for items in grouped.values()),
         "failures": len(failures),
     }
@@ -136,6 +143,19 @@ def filter_recent_items(items, report_date: str, lookback_days: int = 15):
         if cutoff <= published_at < window_end:
             recent.append(item)
     return recent
+
+
+def exclude_previously_seen_items(items, seen_item_keys: set[str]):
+    if not seen_item_keys:
+        return list(items)
+    return [item for item in items if item_identity_key(item) not in seen_item_keys]
+
+
+def history_window_start_date(report_date: str, lookback_days: int) -> str:
+    if lookback_days <= 0:
+        return ""
+    report_day = datetime.strptime(report_date, "%Y-%m-%d").date()
+    return (report_day - timedelta(days=lookback_days)).isoformat()
 
 
 def _window_bounds(report_date: str, lookback_days: int):

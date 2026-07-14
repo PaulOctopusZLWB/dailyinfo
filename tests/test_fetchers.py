@@ -1,19 +1,25 @@
-from info_radar.config import Source
+from dataclasses import replace
+
+import pytest
 import requests
 
+from info_radar.config import Source
 from info_radar.fetchers import (
     build_github_api_urls,
     build_reddit_rss_url,
     build_x_user_lookup_url,
     build_x_user_tweets_url,
     fetch_source,
+    filter_source_items,
     parse_arxiv_feed,
     parse_github_items,
+    parse_openalex_items,
     parse_reddit_items,
     parse_rss_feed,
     parse_web_list,
     parse_x_tweets,
     parse_x_username,
+    request_with_retries,
 )
 
 
@@ -73,11 +79,16 @@ def test_parse_arxiv_feed_fixture() -> None:
     assert items[0].url == "http://arxiv.org/abs/2606.12345v1"
 
 
-def test_github_api_urls_and_payload_parsing(monkeypatch) -> None:
+def test_github_token_does_not_enable_issue_collection(monkeypatch) -> None:
     monkeypatch.setenv("GITHUB_TOKEN", "test-token")
     src = source("github", "https://github.com/example/agent-workflow")
 
     assert build_github_api_urls(src) == [
+        "https://api.github.com/repos/example/agent-workflow/releases",
+    ]
+
+    issue_source = replace(src, github_include_issues=True)
+    assert build_github_api_urls(issue_source) == [
         "https://api.github.com/repos/example/agent-workflow/releases",
         "https://api.github.com/repos/example/agent-workflow/issues?state=open&per_page=20",
     ]
@@ -96,6 +107,12 @@ def test_github_api_urls_and_payload_parsing(monkeypatch) -> None:
     assert len(items) == 1
     assert items[0].source_type == "github"
     assert items[0].title == "v1 release"
+
+
+def test_github_high_priority_preserves_legacy_issue_collection() -> None:
+    src = replace(source("github", "https://github.com/example/agent-workflow"), priority=75)
+
+    assert build_github_api_urls(src)[-1].endswith("/issues?state=open&per_page=20")
 
 
 def test_github_low_priority_without_token_fetches_releases_only(monkeypatch) -> None:
@@ -278,3 +295,136 @@ def test_fetch_source_retries_arxiv_with_user_agent(monkeypatch) -> None:
     assert len(items) == 1
     assert len(calls) == 2
     assert calls[0]["headers"]["User-Agent"].startswith("info-radar/")
+
+
+def test_parse_openalex_items_reconstructs_abstract() -> None:
+    payload = {
+        "results": [
+            {
+                "display_name": "A foundation model for time series forecasting",
+                "doi": "https://doi.org/10.1000/example",
+                "publication_date": "2026-07-01",
+                "abstract_inverted_index": {
+                    "We": [0],
+                    "forecast": [3],
+                    "time": [1],
+                    "series": [2],
+                },
+            },
+            {
+                "display_name": "A foundation model for time series forecasting",
+                "id": "https://openalex.org/W-duplicate",
+                "publication_date": "2026-07-01",
+                "abstract_inverted_index": {"Duplicate": [0]},
+            },
+        ]
+    }
+
+    items = parse_openalex_items(payload, source("openalex"))
+
+    assert len(items) == 1
+    assert items[0].source_type == "openalex"
+    assert items[0].content_or_excerpt == "We time series forecast"
+
+
+def test_fetch_openalex_sends_key_as_request_param(monkeypatch) -> None:
+    monkeypatch.setenv("OPENALEX_API_KEY", "test-openalex-key")
+    calls = []
+
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self):
+            return {"results": []}
+
+    def fake_get(url, **kwargs):
+        calls.append((url, kwargs))
+        return Response()
+
+    monkeypatch.setattr("info_radar.fetchers.requests.get", fake_get)
+
+    assert fetch_source(source("openalex", "https://api.openalex.org/works?search=time%20series")) == []
+    assert "test-openalex-key" not in calls[0][0]
+    assert calls[0][1]["params"]["api_key"] == "test-openalex-key"
+    assert calls[0][1]["params"]["filter"].startswith("from_publication_date:")
+    assert "to_publication_date:" in calls[0][1]["params"]["filter"]
+    assert "has_abstract:true" in calls[0][1]["params"]["filter"]
+    assert "type:article|preprint" in calls[0][1]["params"]["filter"]
+
+
+def test_fetch_openalex_requires_key(monkeypatch) -> None:
+    monkeypatch.delenv("OPENALEX_API_KEY", raising=False)
+
+    with pytest.raises(RuntimeError, match="OPENALEX_API_KEY"):
+        fetch_source(source("openalex"))
+
+
+def test_request_error_redacts_api_key(monkeypatch) -> None:
+    monkeypatch.setenv("OPENALEX_API_KEY", "secret-openalex-key")
+    monkeypatch.setattr("info_radar.fetchers.RETRY_SLEEP_SECONDS", 0)
+
+    def fake_get(*args, **kwargs):
+        raise requests.RequestException(
+            "failed https://api.openalex.org/works?api_key=secret-openalex-key"
+        )
+
+    monkeypatch.setattr("info_radar.fetchers.requests.get", fake_get)
+
+    with pytest.raises(requests.RequestException) as exc_info:
+        request_with_retries("https://api.openalex.org/works")
+
+    assert "secret-openalex-key" not in str(exc_info.value)
+    assert "[REDACTED]" in str(exc_info.value)
+
+
+def test_source_filters_apply_include_and_exclude_terms() -> None:
+    src = replace(
+        source("rss"),
+        include_any=("digital twin", "personal data"),
+        exclude_any=("webinar",),
+    )
+    items = [
+        parse_rss_feed(_rss_item("Digital twin memory", "A personal data system."), src)[0],
+        parse_rss_feed(_rss_item("Generic health article", "Unrelated."), src)[0],
+        parse_rss_feed(_rss_item("Digital twin webinar", "A personal data webinar."), src)[0],
+    ]
+
+    filtered = filter_source_items(items, src)
+
+    assert [item.title for item in filtered] == ["Digital twin memory"]
+
+
+def test_source_filter_matches_single_terms_on_word_boundaries() -> None:
+    src = replace(source("rss"), include_any=("llm",))
+    items = [
+        parse_rss_feed(_rss_item("Enrollment policy", "Graduate enrollment rules."), src)[0],
+        parse_rss_feed(_rss_item("LLM policy", "Rules for an LLM system."), src)[0],
+    ]
+
+    filtered = filter_source_items(items, src)
+
+    assert [item.title for item in filtered] == ["LLM policy"]
+
+
+def test_source_filter_can_require_topic_in_title() -> None:
+    src = replace(source("rss"), include_title_any=("companion ai", "human-ai"))
+    items = [
+        parse_rss_feed(_rss_item("Companion AI governance", "A roadmap."), src)[0],
+        parse_rss_feed(_rss_item("Generic governance", "Companion AI is mentioned once."), src)[0],
+    ]
+
+    filtered = filter_source_items(items, src)
+
+    assert [item.title for item in filtered] == ["Companion AI governance"]
+
+
+def _rss_item(title: str, description: str) -> str:
+    slug = title.lower().replace(" ", "-")
+    return f"""
+<rss version="2.0"><channel><item>
+  <title>{title}</title>
+  <link>https://example.com/{slug}</link>
+  <description>{description}</description>
+</item></channel></rss>
+"""

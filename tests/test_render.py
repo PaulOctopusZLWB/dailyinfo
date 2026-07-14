@@ -46,4 +46,12 @@ def test_write_markdown_creates_obsidian_directory(tmp_path: Path) -> None:
     path = write_markdown(output_dir, "2026-07-01", "# report")
 
     assert path == output_dir / "2026-07-01 信息雷达.md"
-    assert path.read_text(encoding="utf-8") == "# report"
+    report = path.read_text(encoding="utf-8")
+    assert report.startswith("---\n")
+    assert 'type: "information-radar"' in report
+    assert 'status: "reference"' in report
+    assert 'date: "2026-07-01"' in report
+    assert "description:" in report
+    assert '  - "artifact/information-radar"' in report
+    assert "> 数据截止与发布校验：" in report
+    assert "# report\n\n> 数据截止与发布校验：" in report

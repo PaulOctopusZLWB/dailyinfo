@@ -19,6 +19,9 @@ sources:
     priority: 90
     enabled: true
     notes: AI research feed.
+    include_any: [foundation model, forecasting]
+    include_title_any: [foundation model]
+    exclude_any: [sponsored]
   - id: disabled-source
     name: Disabled
     type: rss
@@ -37,6 +40,9 @@ sources:
     assert [source.id for source in registry.enabled_sources()] == ["arxiv-ai"]
     assert registry.get("arxiv-ai").priority == 90
     assert registry.get("arxiv-ai").directions == ("macro_ai", "temporal")
+    assert registry.get("arxiv-ai").include_any == ("foundation model", "forecasting")
+    assert registry.get("arxiv-ai").include_title_any == ("foundation model",)
+    assert registry.get("arxiv-ai").exclude_any == ("sponsored",)
 
 
 def test_registry_rejects_unknown_direction(tmp_path: Path) -> None:

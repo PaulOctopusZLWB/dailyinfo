@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#0e0f11" />
+    <title>API 配置 · 信息雷达</title>
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/settings.css?v=20260713-credentials-1" />
+  </head>
+  <body>
+    <div class="scanField" aria-hidden="true"></div>
+
+    <header class="settingsHeader">
+      <a class="backLink" href="/">← 返回信息雷达</a>
+      <div class="localSeal"><span aria-hidden="true"></span>LOCALHOST ONLY</div>
+    </header>
+
+    <main class="settingsShell">
+      <section class="settingsHero" aria-labelledby="pageTitle">
+        <div>
+          <div class="eyebrow">SOURCE CREDENTIAL BAY</div>
+          <h1 id="pageTitle">把密钥接进雷达。<br /><span>不把密钥送出电脑。</span></h1>
+          <p>
+            这里只保存来源接口凭据。密钥写入本机忽略文件 <code>.env</code>，页面只显示“已配置”，永远不会回显原值。
+          </p>
+        </div>
+        <div class="readiness" aria-live="polite">
+          <div class="readinessCount"><strong id="configuredCount">—</strong><span>/ 2</span></div>
+          <div class="readinessLabel">免费必备项已配置</div>
+          <div class="readinessTrack"><span id="readinessFill"></span></div>
+        </div>
+      </section>
+
+      <div id="pageNotice" class="pageNotice" role="status" hidden></div>
+
+      <form id="credentialForm" class="credentialForm" novalidate>
+        <section class="credentialGroup" aria-labelledby="freeTitle">
+          <header class="groupHeader">
+            <div>
+              <span class="groupCode">P0 · FREE</span>
+              <h2 id="freeTitle">现在申请这两个</h2>
+            </div>
+            <p>足以解除 GitHub 限流，并为论文扩源做好准备。</p>
+          </header>
+
+          <article class="credentialRow" data-credential="GITHUB_TOKEN">
+            <div class="signalNode" aria-hidden="true"><span></span></div>
+            <div class="credentialIdentity">
+              <span class="sourceCode">GH</span>
+              <div>
+                <h3>GitHub Token</h3>
+                <p>已接入 · 免费</p>
+              </div>
+            </div>
+            <div class="credentialGuide">
+              <p>申请 Fine-grained token，只授予读取公开仓库所需权限，不要给写权限。</p>
+              <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">去 GitHub 申请 ↗</a>
+            </div>
+            <div class="credentialControl">
+              <label for="githubToken">粘贴 GITHUB_TOKEN</label>
+              <div class="secretInput">
+                <input
+                  id="githubToken"
+                  name="GITHUB_TOKEN"
+                  type="password"
+                  autocomplete="new-password"
+                  spellcheck="false"
+                  placeholder="github_pat_…"
+                />
+                <button class="revealButton" type="button" data-reveal="githubToken" aria-label="显示或隐藏 GitHub Token">显示</button>
+              </div>
+              <div class="controlMeta">
+                <span class="credentialStatus">检查中</span>
+                <button class="clearButton" type="button" data-clear="GITHUB_TOKEN" hidden>清除</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="credentialRow" data-credential="OPENALEX_API_KEY">
+            <div class="signalNode" aria-hidden="true"><span></span></div>
+            <div class="credentialIdentity">
+              <span class="sourceCode">OA</span>
+              <div>
+                <h3>OpenAlex API Key</h3>
+                <p>连接器待接入 · 免费</p>
+              </div>
+            </div>
+            <div class="credentialGuide">
+              <p>注册后复制 API key；免费额度足够个人雷达按主题和期刊做每日检索。</p>
+              <a href="https://openalex.org/settings/api" target="_blank" rel="noreferrer">去 OpenAlex 申请 ↗</a>
+            </div>
+            <div class="credentialControl">
+              <label for="openAlexKey">粘贴 OPENALEX_API_KEY</label>
+              <div class="secretInput">
+                <input
+                  id="openAlexKey"
+                  name="OPENALEX_API_KEY"
+                  type="password"
+                  autocomplete="new-password"
+                  spellcheck="false"
+                  placeholder="OpenAlex key"
+                />
+                <button class="revealButton" type="button" data-reveal="openAlexKey" aria-label="显示或隐藏 OpenAlex API Key">显示</button>
+              </div>
+              <div class="controlMeta">
+                <span class="credentialStatus">检查中</span>
+                <button class="clearButton" type="button" data-clear="OPENALEX_API_KEY" hidden>清除</button>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="credentialGroup optionalGroup" aria-labelledby="optionalTitle">
+          <header class="groupHeader">
+            <div>
+              <span class="groupCode">OPTIONAL · PAID</span>
+              <h2 id="optionalTitle">只有已有额度才填写</h2>
+            </div>
+            <p>X 的读取接口按量付费，不建议为了本项目现在购买。</p>
+          </header>
+
+          <article class="credentialRow compact" data-credential="X_BEARER_TOKEN">
+            <div class="signalNode" aria-hidden="true"><span></span></div>
+            <div class="credentialIdentity">
+              <span class="sourceCode">X</span>
+              <div>
+                <h3>X Bearer Token</h3>
+                <p>已接入 · 按量付费</p>
+              </div>
+            </div>
+            <div class="credentialGuide">
+              <p>没有现成额度就留空；我们会优先用免费的 Bluesky 公共接口补社交信号。</p>
+              <a href="https://docs.x.com/x-api/fundamentals/post-cap" target="_blank" rel="noreferrer">查看官方计费说明 ↗</a>
+            </div>
+            <div class="credentialControl">
+              <label for="xToken">粘贴 X_BEARER_TOKEN</label>
+              <div class="secretInput">
+                <input
+                  id="xToken"
+                  name="X_BEARER_TOKEN"
+                  type="password"
+                  autocomplete="new-password"
+                  spellcheck="false"
+                  placeholder="Bearer token"
+                />
+                <button class="revealButton" type="button" data-reveal="xToken" aria-label="显示或隐藏 X Bearer Token">显示</button>
+              </div>
+              <div class="controlMeta">
+                <span class="credentialStatus">检查中</span>
+                <button class="clearButton" type="button" data-clear="X_BEARER_TOKEN" hidden>清除</button>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <div class="saveDock">
+          <div>
+            <strong>空白字段不会覆盖已有值</strong>
+            <span>保存后，新的雷达命令会自动读取本机 .env。</span>
+          </div>
+          <button id="saveButton" class="saveButton" type="submit">保存新填写的密钥</button>
+        </div>
+      </form>
+
+      <section class="noKeyMatrix" aria-labelledby="noKeyTitle">
+        <div>
+          <span class="groupCode">NO KEY NEEDED</span>
+          <h2 id="noKeyTitle">这些不用申请</h2>
+        </div>
+        <ul>
+          <li><strong>Bluesky</strong><span>公开作者 Feed 无需认证</span></li>
+          <li><strong>RSS / Atom</strong><span>直接读取</span></li>
+          <li><strong>arXiv</strong><span>无需密钥，当前是连接稳定性问题</span></li>
+          <li><strong>YouTube 频道 Feed</strong><span>无需 Data API Key</span></li>
+        </ul>
+      </section>
+
+      <section class="deferredNotes" aria-labelledby="deferredTitle">
+        <div>
+          <span class="groupCode">DEFERRED</span>
+          <h2 id="deferredTitle">现在不要交给系统</h2>
+        </div>
+        <div class="deferredGrid">
+          <p><strong>Reddit</strong>：非商业 Data API 目前需要提交用途申请，等连接器完成后再申请。</p>
+          <p><strong>OpenReview</strong>：官方客户端使用账号密码认证；我们不会在这个表单长期保存你的账户密码。</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="settingsFooter">
+      <span>INFO RADAR · LOCAL CREDENTIAL CONTROL</span>
+      <span>密钥不回显 · 不写入浏览器存储 · .env 已被 Git 忽略</span>
+    </footer>
+
+    <script src="/assets/settings.js?v=20260713-credentials-1"></script>
+  </body>
+</html>

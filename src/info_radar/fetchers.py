@@ -1,7 +1,7 @@
 import os
 import re
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from html.parser import HTMLParser
 from typing import Iterable, List, Optional
 from urllib.parse import urlencode, urljoin, urlparse
@@ -18,9 +18,20 @@ REQUEST_TIMEOUT = 20
 MAX_RETRIES = 3
 RETRY_SLEEP_SECONDS = 2
 USER_AGENT = "info-radar/0.1 (+https://local.invalid; personal research radar)"
+SECRET_ENV_KEYS = (
+    "GITHUB_TOKEN",
+    "OPENALEX_API_KEY",
+    "X_BEARER_TOKEN",
+    "TWITTER_BEARER_TOKEN",
+)
+OPENALEX_LOOKBACK_DAYS = 45
 
 
 def fetch_source(source: Source) -> List[RadarItem]:
+    return filter_source_items(_fetch_source_unfiltered(source), source)
+
+
+def _fetch_source_unfiltered(source: Source) -> List[RadarItem]:
     if source.type in {"manual", "bilibili", "zsxq"}:
         return []
     if source.type == "x":
@@ -31,6 +42,8 @@ def fetch_source(source: Source) -> List[RadarItem]:
     if source.type == "arxiv":
         response = request_with_retries(source.url)
         return parse_arxiv_feed(response.text, source)
+    if source.type == "openalex":
+        return fetch_openalex_source(source)
     if source.type == "github":
         items = []
         headers = _github_headers()
@@ -51,14 +64,18 @@ def fetch_source(source: Source) -> List[RadarItem]:
     raise ValueError(f"unsupported source type: {source.type}")
 
 
-def request_with_retries(url: str, headers: Optional[dict] = None):
+def request_with_retries(
+    url: str,
+    headers: Optional[dict] = None,
+    params: Optional[dict] = None,
+):
     request_headers = default_headers()
     if headers:
         request_headers.update(headers)
     last_error = None
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            response = requests.get(url, headers=request_headers, timeout=REQUEST_TIMEOUT)
+            response = requests.get(url, headers=request_headers, params=params, timeout=REQUEST_TIMEOUT)
             response.raise_for_status()
             return response
         except requests.RequestException as exc:
@@ -66,7 +83,7 @@ def request_with_retries(url: str, headers: Optional[dict] = None):
             if attempt == MAX_RETRIES:
                 break
             time.sleep(RETRY_SLEEP_SECONDS * attempt)
-    raise last_error  # type: ignore[misc]
+    raise requests.RequestException(_sanitize_request_error(last_error)) from None
 
 
 def default_headers() -> dict:
@@ -120,6 +137,61 @@ def parse_arxiv_feed(xml: str, source: Source) -> List[RadarItem]:
     return items
 
 
+def fetch_openalex_source(source: Source) -> List[RadarItem]:
+    api_key = (os.environ.get("OPENALEX_API_KEY") or "").strip()
+    if not api_key:
+        raise RuntimeError("OPENALEX_API_KEY is not configured")
+    today = datetime.now(timezone.utc).date()
+    window_start = today - timedelta(days=OPENALEX_LOOKBACK_DAYS)
+    params = {
+        "api_key": api_key,
+        "filter": (
+            f"from_publication_date:{window_start.isoformat()},"
+            f"to_publication_date:{today.isoformat()},"
+            "has_abstract:true,type:article|preprint"
+        ),
+    }
+    response = request_with_retries(source.url, params=params)
+    return parse_openalex_items(response.json(), source)
+
+
+def parse_openalex_items(payload: object, source: Source) -> List[RadarItem]:
+    if not isinstance(payload, dict):
+        return []
+    rows = payload.get("results", [])
+    if not isinstance(rows, list):
+        return []
+
+    items = []
+    seen_titles = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        title = str(row.get("display_name") or row.get("title") or "").strip()
+        title_key = re.sub(r"\s+", " ", title).casefold()
+        primary_location = row.get("primary_location")
+        landing_page_url = ""
+        if isinstance(primary_location, dict):
+            landing_page_url = str(primary_location.get("landing_page_url") or "").strip()
+        url = str(row.get("doi") or landing_page_url or row.get("id") or "").strip()
+        if not title or not url or title_key in seen_titles:
+            continue
+        seen_titles.add(title_key)
+        items.append(
+            RadarItem(
+                source_id=source.id,
+                source_name=source.name,
+                source_type="openalex",
+                title=title,
+                url=url,
+                published_at=str(row.get("publication_date") or ""),
+                content_or_excerpt=_openalex_abstract(row.get("abstract_inverted_index")),
+                direction_hints=source.directions,
+            )
+        )
+    return items
+
+
 def build_github_api_urls(source: Source) -> List[str]:
     parsed = urlparse(source.url)
     path_parts = [part for part in parsed.path.split("/") if part]
@@ -128,9 +200,41 @@ def build_github_api_urls(source: Source) -> List[str]:
     owner, repo = path_parts[0], path_parts[1]
     base = f"https://api.github.com/repos/{owner}/{repo}"
     urls = [f"{base}/releases"]
-    if os.environ.get("GITHUB_TOKEN") or source.priority >= 75:
+    include_issues = source.github_include_issues
+    if include_issues is None:
+        include_issues = source.priority >= 75
+    if include_issues:
         urls.append(f"{base}/issues?state=open&per_page=20")
     return urls
+
+
+def filter_source_items(items: Iterable[RadarItem], source: Source) -> List[RadarItem]:
+    include_terms = tuple(term.casefold() for term in source.include_any)
+    include_title_terms = tuple(term.casefold() for term in source.include_title_any)
+    exclude_terms = tuple(term.casefold() for term in source.exclude_any)
+    filtered = []
+    for item in items:
+        title = re.sub(r"\s+", " ", item.title.casefold())
+        haystack = re.sub(
+            r"\s+",
+            " ",
+            f"{item.title}\n{item.content_or_excerpt}\n{item.url}".casefold(),
+        )
+        if exclude_terms and any(_term_matches(term, haystack) for term in exclude_terms):
+            continue
+        if include_terms and not any(_term_matches(term, haystack) for term in include_terms):
+            continue
+        if include_title_terms and not any(_term_matches(term, title) for term in include_title_terms):
+            continue
+        filtered.append(item)
+    return filtered
+
+
+def _term_matches(term: str, haystack: str) -> bool:
+    if re.fullmatch(r"\w+", term, flags=re.UNICODE):
+        pattern = rf"(?<!\w){re.escape(term)}(?!\w)"
+        return re.search(pattern, haystack, flags=re.UNICODE) is not None
+    return term in haystack
 
 
 def parse_github_items(payload: object, source: Source) -> List[RadarItem]:
@@ -358,6 +462,29 @@ def _x_bearer_token() -> str:
 
 def _clean_x_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
+
+
+def _openalex_abstract(value: object) -> str:
+    if not isinstance(value, dict):
+        return ""
+    positioned_words = []
+    for word, positions in value.items():
+        if not isinstance(positions, list):
+            continue
+        for position in positions:
+            if isinstance(position, int):
+                positioned_words.append((position, str(word)))
+    positioned_words.sort(key=lambda pair: pair[0])
+    return " ".join(word for _, word in positioned_words)[:4000]
+
+
+def _sanitize_request_error(error: Optional[BaseException]) -> str:
+    text = str(error or "request failed")
+    for key in SECRET_ENV_KEYS:
+        secret = (os.environ.get(key) or "").strip()
+        if secret:
+            text = text.replace(secret, "[REDACTED]")
+    return re.sub(r"([?&](?:api_key|access_token|token)=)[^&\s]+", r"\1[REDACTED]", text)
 
 
 def _x_title(username: str, text: str) -> str:

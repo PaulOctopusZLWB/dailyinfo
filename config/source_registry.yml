@@ -100,6 +100,169 @@ sources:
     enabled: true
     notes: 时序模型、预测、temporal reasoning 查询。
 
+  - id: openalex-time-series
+    name: OpenAlex time-series research
+    type: openalex
+    url: "https://api.openalex.org/works?search=%22time%20series%22%20AND%20(%22foundation%20model%22%20OR%20forecasting%20OR%20transformer)&per-page=50"
+    directions: [temporal]
+    language_hint: en
+    priority: 78
+    enabled: true
+    include_any: [time series, time-series, forecasting, temporal, foundation model]
+    exclude_any: [asset pricing, stock market, financial market, cryptocurrency, portfolio, trading, realized volatility, econometric, finance, financial]
+    notes: 用 OpenAlex 补充 arXiv 之外的时序论文与跨出版社元数据；需要 OPENALEX_API_KEY。
+  - id: openalex-human-ai
+    name: OpenAlex human-AI and personal data research
+    type: openalex
+    url: "https://api.openalex.org/works?search=(%22human-AI%20interaction%22%20OR%20%22human%20digital%20twin%22%20OR%20%22cognitive%20digital%20twin%22%20OR%20%22personal%20digital%20twin%22%20OR%20%22digital%20afterlife%22%20OR%20%22companion%20AI%22)&per-page=50"
+    directions: [human_digital_twin, ai_philosophy]
+    language_hint: en
+    priority: 75
+    enabled: true
+    include_any: [human-ai, human ai, human digital twin, cognitive digital twin, personal digital twin, personal data, self-tracking, companion ai, digital afterlife, digital ghost, model the mind]
+    include_title_any: [human-ai, human ai, human digital twin, personal digital twin, cognitive digital twin, companion ai, digital afterlife, digital ghost]
+    exclude_any: [channel estimation, wireless channel, building energy management, gas distribution, industrial, manufacturing, power grid, quality management system, urban passenger transportation]
+    notes: 补充人机关系、个人数据与人类数字孪生的跨学科论文；需要 OPENALEX_API_KEY。
+
+  - id: github-timesfm
+    name: Google TimesFM
+    type: github
+    url: "https://github.com/google-research/timesfm"
+    directions: [temporal]
+    language_hint: en
+    priority: 74
+    enabled: true
+    github_include_issues: false
+    notes: 时间序列基础模型的官方实现与版本发布，只抓 release。
+  - id: github-chronos-forecasting
+    name: Amazon Chronos Forecasting
+    type: github
+    url: "https://github.com/amazon-science/chronos-forecasting"
+    directions: [temporal]
+    language_hint: en
+    priority: 73
+    enabled: true
+    github_include_issues: false
+    notes: 概率时序预测模型与工具链，只抓 release。
+  - id: github-neuralforecast
+    name: Nixtla NeuralForecast
+    type: github
+    url: "https://github.com/Nixtla/neuralforecast"
+    directions: [temporal]
+    language_hint: en
+    priority: 72
+    enabled: true
+    github_include_issues: false
+    notes: 神经时序预测模型库，只抓 release。
+  - id: github-uni2ts
+    name: Salesforce Uni2TS
+    type: github
+    url: "https://github.com/SalesforceAIResearch/uni2ts"
+    directions: [temporal]
+    language_hint: en
+    priority: 71
+    enabled: true
+    github_include_issues: false
+    notes: Moirai 通用时序模型的官方实现，只抓 release。
+  - id: github-granite-tsfm
+    name: IBM Granite TSFM
+    type: github
+    url: "https://github.com/ibm-granite/granite-tsfm"
+    directions: [temporal, industrial_ai]
+    language_hint: en
+    priority: 71
+    enabled: true
+    github_include_issues: false
+    notes: 面向企业场景的时序基础模型，只抓 release。
+
+  - id: rss-opc-connect
+    name: OPC Connect
+    type: rss
+    url: "https://opcconnect.opcfoundation.org/feed/"
+    directions: [industrial_ai]
+    language_hint: en
+    priority: 75
+    enabled: true
+    notes: OPC UA、工业互操作与现场应用的一手生态动态。
+  - id: rss-cesmii-news
+    name: CESMII News
+    type: rss
+    url: "https://www.cesmii.org/category/news/feed/"
+    directions: [industrial_ai]
+    language_hint: en
+    priority: 74
+    enabled: true
+    notes: 美国智能制造研究院的项目、标准与产业协作动态。
+  - id: rss-lf-edge
+    name: LF Edge
+    type: rss
+    url: "https://lfedge.org/feed/"
+    directions: [industrial_ai, ai_agents]
+    language_hint: en
+    priority: 68
+    enabled: true
+    include_any: [artificial intelligence, machine learning, edge ai, industrial, manufacturing, digital twin, open horizon, edgex, fledge]
+    notes: 只保留边缘 AI、工业与数字孪生相关内容，避免基金会泛新闻。
+
+  - id: rss-quantified-self
+    name: Quantified Self
+    type: rss
+    url: "https://quantifiedself.com/feed/"
+    directions: [human_digital_twin]
+    language_hint: en
+    priority: 66
+    enabled: true
+    notes: 自我追踪、个人数据实践与工具的长期信号。
+  - id: rss-open-humans
+    name: Open Humans Blog
+    type: rss
+    url: "https://blog.openhumans.org/feed/"
+    directions: [human_digital_twin]
+    language_hint: en
+    priority: 69
+    enabled: true
+    notes: 个人数据授权、研究参与和数据自治的一手实践。
+  - id: rss-mydata-global
+    name: MyData Global
+    type: rss
+    url: "https://mydata.org/feed/"
+    directions: [human_digital_twin, ai_philosophy]
+    language_hint: en
+    priority: 70
+    enabled: true
+    notes: 个人数据治理、数据权利与人本数字基础设施。
+  - id: atom-jmir-human-factors
+    name: JMIR Human Factors
+    type: atom
+    url: "https://humanfactors.jmir.org/feed/atom"
+    directions: [human_digital_twin, ai_philosophy]
+    language_hint: en
+    priority: 72
+    enabled: true
+    include_any: [artificial intelligence, machine learning, large language model, digital twin, self-tracking, personal data, wearable, patient-generated, personalization, companion]
+    notes: 只保留与 AI、个人数据、自我追踪和个性化相关的人因研究。
+  - id: github-letta
+    name: Letta
+    type: github
+    url: "https://github.com/letta-ai/letta"
+    directions: [human_digital_twin, ai_agents]
+    language_hint: en
+    priority: 73
+    enabled: true
+    github_include_issues: false
+    notes: 有状态 agent、长期记忆与上下文管理的开源实现，只抓 release。
+
+  - id: rss-daily-nous
+    name: Daily Nous
+    type: rss
+    url: "https://dailynous.com/feed/"
+    directions: [ai_philosophy]
+    language_hint: en
+    priority: 68
+    enabled: true
+    include_any: [artificial intelligence, large language model, llm, chatgpt, algorithmic, machine consciousness, robot, human-ai, ai ethics]
+    notes: 哲学界动态源；用严格关键词只保留 AI、算法与机器意识相关讨论。
+
   - id: hnrss-frontpage
     name: Hacker News Front Page
     type: rss
@@ -402,12 +565,13 @@ sources:
   - id: noema-magazine
     name: Noema Magazine
     type: rss
-    url: "https://www.noemamag.com/?feed=noemarss"
-    directions: [macro_ai, ai_philosophy]
+    url: "https://www.noemamag.com/article-type/essay/feed/"
+    directions: [ai_philosophy, human_digital_twin]
     language_hint: en
     priority: 64
-    enabled: false
-    notes: 技术、社会、文明尺度的 AI 时代哲学与治理讨论。
+    enabled: true
+    include_any: [artificial intelligence, algorithm, machine, technology, digital, consciousness, humanity, agency, automation]
+    notes: 已修正 essay RSS；只保留技术、AI、人类主体性与自动化相关长文。
   - id: psyche
     name: Psyche
     type: rss
@@ -869,8 +1033,8 @@ sources:
     directions: [macro_ai]
     language_hint: en
     priority: 56
-    enabled: true
-    notes: "从 tech-news-digest 默认源导入。 HN top stories 泛工程/前沿技术源中等偏低可信；只用于发现工程文化、工具链和开发者关注点。"
+    enabled: false
+    notes: "与 hnrss-frontpage URL 重复，保留条目作来源谱系记录但停用。"
   - id: tnd-ars-rss
     name: "Ars Technica"
     type: rss
@@ -1544,8 +1708,8 @@ sources:
     directions: [ai_agents]
     language_hint: en
     priority: 74
-    enabled: true
-    notes: "从 tech-news-digest 默认源导入。 Framework for building LLM applications 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+    enabled: false
+    notes: "与 github-langchain URL 重复，保留条目作来源谱系记录但停用。"
   - id: tnd-llamaindex-github
     name: "LlamaIndex"
     type: github
@@ -1553,8 +1717,8 @@ sources:
     directions: [ai_agents]
     language_hint: en
     priority: 62
-    enabled: true
-    notes: "从 tech-news-digest 默认源导入。 Data framework for LLM applications 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+    enabled: false
+    notes: "与 github-llama-index URL 重复，保留条目作来源谱系记录但停用。"
   - id: tnd-ollama-github
     name: "Ollama"
     type: github
@@ -1598,8 +1762,8 @@ sources:
     directions: [ai_agents]
     language_hint: en
     priority: 62
-    enabled: true
-    notes: "从 tech-news-digest 默认源导入。 Multi-agent AI collaboration framework 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+    enabled: false
+    notes: "与 github-crewai URL 重复，保留条目作来源谱系记录但停用。"
   - id: tnd-autogen-github
     name: "AutoGen"
     type: github
@@ -1607,8 +1771,8 @@ sources:
     directions: [ai_agents]
     language_hint: en
     priority: 62
-    enabled: true
-    notes: "从 tech-news-digest 默认源导入。 Multi-agent conversation framework from Microsoft 用于扩展候选池；仍需去重、软文过滤和证据强度评分。"
+    enabled: false
+    notes: "与 github-autogen URL 重复，保留条目作来源谱系记录但停用。"
   - id: tnd-dify-github
     name: "Dify"
     type: github
@@ -1919,7 +2083,7 @@ sources:
     name: "Mem0"
     type: github
     url: "https://github.com/mem0ai/mem0"
-    directions: [ai_agents]
+    directions: [ai_agents, human_digital_twin]
     language_hint: en
     priority: 62
     enabled: true

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">信息雷达</title>
+  <desc id="desc">一道雷达扫描线聚焦到高价值信号</desc>
+  <rect width="64" height="64" rx="14" fill="#0e0f11"/>
+  <circle cx="32" cy="32" r="21" fill="none" stroke="#35332f" stroke-width="2"/>
+  <circle cx="32" cy="32" r="12" fill="none" stroke="#26272c" stroke-width="2"/>
+  <path d="M32 11a21 21 0 0 1 21 21" fill="none" stroke="#c9a96e" stroke-linecap="round" stroke-width="2.5"/>
+  <path d="M32 32 48.9 19.5A21 21 0 0 1 53 32Z" fill="#c9a96e" fill-opacity=".16"/>
+  <path d="m32 32 16.9-12.5" fill="none" stroke="#c9a96e" stroke-linecap="round" stroke-width="2.5"/>
+  <circle cx="32" cy="32" r="3.25" fill="#e9e7e1"/>
+  <circle cx="46" cy="24" r="3.5" fill="#c9a96e" stroke="#0e0f11" stroke-width="2"/>
+</svg>

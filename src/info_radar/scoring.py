@@ -44,6 +44,12 @@ DIRECTION_KEYWORDS = {
         "mes",
         "apc",
         "factory",
+        "manufacturing",
+        "opc ua",
+        "edge ai",
+        "edge computing",
+        "digital twin",
+        "industry 4.0",
         "process engineering",
         "工业",
         "工控",
@@ -218,7 +224,7 @@ def infer_evidence_type(item) -> str:
         return "安全公告/漏洞通报"
     if item.source_type == "github" or "github.com" in text:
         return "代码/开源项目"
-    if item.source_type == "arxiv" or "arxiv.org" in text or "paper" in text or "论文" in text:
+    if item.source_type in {"arxiv", "openalex"} or "arxiv.org" in text or "paper" in text or "论文" in text:
         return "论文/研究"
     if re.search(r"\b(repo|repository)\b", text):
         return "代码/开源项目"
@@ -304,6 +310,6 @@ def infer_novelty_signal(item) -> str:
         return "包含新的方法、框架或问题表述"
     if item.source_type == "github":
         return "来自可落地验证的开源实现或 issue 讨论"
-    if item.source_type == "arxiv":
+    if item.source_type in {"arxiv", "openalex"}:
         return "来自近期论文，适合作为前沿假设输入"
     return "相对现有源池有新的事实或论述增量"

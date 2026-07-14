@@ -189,6 +189,9 @@ def build_publish_run_stats(report_date: str, registry_path: Path, candidate_jso
                 "within_window_items": int(metadata.get("within_window", 0) or 0),
                 "lookback_days": int(metadata.get("lookback_days", 0) or 0),
                 "deduped_items": int(metadata.get("deduped", 0) or 0),
+                "previously_seen_items": int(metadata.get("previously_seen", 0) or 0),
+                "cross_day_excluded_items": int(metadata.get("cross_day_excluded", 0) or 0),
+                "fresh_items": int(metadata.get("fresh", metadata.get("deduped", 0)) or 0),
                 "rendered_candidates": int(metadata.get("rendered", 0) or 0),
                 "failed_sources": failed_sources,
             }

@@ -195,89 +195,97 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
 
     assert response.status_code == 200
     assert "信息雷达" in response.text
-    assert "TPT技术研发部" in response.text
     assert "要点与来源" not in response.text
-    assert "重点判断" in response.text
-    assert "来源解读" in response.text
-    assert "处理统计" in response.text
+    assert "核心阅读" in response.text
+    assert "深度阅读" in response.text
+    assert "证据回溯" in response.text
+    assert "归档" in response.text
+    assert "浅色" in response.text
     assert "阅读热度" not in response.text
     assert 'id="analyticsSummary"' not in response.text
-    assert 'id="readingPath"' in response.text
+    assert 'id="viewTabs"' in response.text
     assert 'id="morningTitle"' in response.text
+    assert 'id="prevDate"' in response.text
+    assert 'id="nextDate"' in response.text
+    assert "晨报日期翻页" in response.text
+    assert 'id="ambientCanvas"' in response.text
+    assert 'id="deepDrawer"' in response.text
     assert '<span class="pathIcon">1</span>' not in response.text
     assert "今日晨报" not in response.text
     assert "今日信号" not in response.text
     assert "核心阅读区优先" not in response.text
     assert "/api/reports/latest" in response.text
     assert "我的收藏" not in response.text
-    assert "techBackdrop" in response.text
-    assert "asciiMeshCanvas" in response.text
+    assert '<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />' in response.text
+    assert '<img src="/assets/favicon.svg" alt="" />' in response.text
+
+    favicon = client.get("/assets/favicon.svg")
+    assert favicon.status_code == 200
+    assert favicon.headers["content-type"].startswith("image/svg+xml")
+    assert "一道雷达扫描线聚焦到高价值信号" in favicon.text
 
     css = Path("web/styles.css").read_text(encoding="utf-8")
-    assert "asciiMeshCanvas" in css
-    assert "Visible mesh background contract" in css
-    assert "Wave mesh background contract" in css
+    assert "ambientCanvas" in css
+    assert "Ambient particle background contract" in css
     assert "--content-max" in css
     assert "--page-gutter" in css
-    assert "--mesh-opacity" in css
     assert "pointer-events: none" in css
-    assert "user-select: none" in css
-    assert "Reader text must stay fully readable" in css
-    assert "-webkit-line-clamp: unset" in css
+    assert "--goldDim" in css
+    assert ".drawerBackdrop" in css
+    assert ".dateDeck" in css
+    assert ".datePage" in css
+    assert ".pageTurn" in css
+    assert ".strengthFilters[hidden]" in css
     assert ".trackTarget" in css
-    assert "pointer-events: none" in css
     assert "prefers-reduced-motion" in css
-    assert "runStats" in css
-    assert "statItem" in css
     assert "analyticsSummary" not in css
     assert "heatGrid" not in css
     assert "topReadList" not in css
 
     js = Path("web/app.js").read_text(encoding="utf-8")
-    assert "initAsciiMesh" in js
-    assert "buildAsciiMeshPattern" in js
-    assert "drawAsciiMeshFrame" in js
-    assert "WAVE_GLYPHS" in js
-    assert "buildWaveMeshCell" in js
-    assert "❏" in js
+    assert "initAmbientFx" in js
+    assert "ambientCanvas" in js
+    assert "cursorRing" in js
+    assert "viewTabs" in js
+    assert "prevDate" in js
+    assert "nextDate" in js
+    assert "shiftReportDate" in js
+    assert "formatWeekday" in js
+    assert "directionCountsForActiveView" in js
+    assert "strengthFilters" in js
+    assert 'state.activeView !== "deep"' in js
+    assert "direction.label" in js
+    assert "openDeep" in js
+    assert "renderEvidenceBox" in js
     assert "requestAnimationFrame" in js
-    assert "fillText" in js
-    assert "已整理" in js
-    assert "可读线索" in js
-    assert "renderRunStats" in js
-    assert "renderReadingPath" in js
     assert "trackEvent" in js
     assert "IntersectionObserver" in js
     assert "sendBeacon" in js
     assert "selectionchange" in js
     assert "/api/analytics/events" in js
     assert "/api/analytics/summary" not in js
-    assert "renderIcon" in js
-    assert "DIRECTION_ICONS" in js
-    assert "buildReportDirectionCounts" in js
+    assert "renderIcon" not in js
+    assert "DIRECTION_ICONS" not in js
     assert "getLayerCounts" in js
     assert "statNumber" in js
-    assert "formatNumberOrDash" in js
     assert "directionById" in js
     assert "directionByLabel" in js
     assert "normalizeDirectionLabel" in js
     assert "visibleEvidenceItems" in js
-    assert "核心论点" in js
+    assert "核心论述" in js
     assert "对我们的影响" in js
+    assert "证据回溯" in js
     assert "source_category" in js
     assert "sourceCategoryForDeepItem" in js
     assert "direction_id" in js
     assert "direction_label" in js
     assert "source_label" in js
-    assert "源状态" in js
-    assert "候选池" in js
     assert "lookback_days || 15" not in js
-    assert "来源 " in js
-    assert "为什么值得读" in js
+    assert "深读" in js
+    assert "行动" in js
     assert 'icon: "T"' not in js
     assert 'icon: "M"' not in js
     assert 'icon: "A"' not in js
-    assert "深读 " not in js
     assert "高价值候选" not in js
     assert 'aria-label="收藏"' not in js
     assert 'aria-label="打开"' not in js

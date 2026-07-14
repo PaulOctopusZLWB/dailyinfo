@@ -66,6 +66,19 @@ def test_scoring_does_not_treat_reported_as_repo_evidence() -> None:
     assert scored.evidence_type == "论文/研究"
 
 
+def test_scoring_treats_openalex_as_research_evidence() -> None:
+    item = make_item(
+        "Human-AI interaction and personal context",
+        "https://doi.org/10.1000/openalex-example",
+        source_type="openalex",
+        excerpt="We study human-AI interaction and personal data systems.",
+    )
+
+    scored = score_item(item, source_priority=75)
+
+    assert scored.evidence_type == "论文/研究"
+
+
 def test_scoring_detects_ai_era_philosophy_discussion() -> None:
     item = make_item(
         "AI era philosophy of agency and meaning in human-AI interaction",
@@ -96,6 +109,18 @@ def test_scoring_detects_ics_advisory_evidence_type() -> None:
     scored = score_item(item, source_priority=78)
 
     assert scored.evidence_type == "安全公告/漏洞通报"
+
+
+def test_scoring_detects_smart_manufacturing_as_industrial_ai() -> None:
+    item = make_item(
+        "Smart manufacturing roadmap for edge AI",
+        "https://example.com/smart-manufacturing",
+        excerpt="An OPC UA and edge computing architecture for a digital twin factory.",
+    )
+
+    scored = score_item(item, source_priority=74)
+
+    assert scored.primary_direction == "industrial_ai"
 
 
 def test_content_signal_can_override_source_direction_hint() -> None:

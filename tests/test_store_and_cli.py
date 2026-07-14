@@ -132,6 +132,84 @@ sources:
     assert "不要把本候选包原样写入 Obsidian" in packet
 
 
+def test_cli_render_excludes_items_seen_on_previous_report_dates(tmp_path: Path) -> None:
+    registry_file = tmp_path / "registry.yml"
+    imports_dir = tmp_path / "imports"
+    output_dir = tmp_path / "obsidian"
+    staging_dir = tmp_path / "staging"
+    db_path = tmp_path / "radar.sqlite"
+    imports_dir.mkdir()
+
+    registry_file.write_text(
+        """
+sources:
+  - id: manual-cn
+    name: 中文手工导入
+    type: manual
+    url: file://manual
+    directions: [ai_agents]
+    language_hint: zh
+    priority: 80
+    enabled: true
+    notes: Manual imports for restricted platforms.
+""",
+        encoding="utf-8",
+    )
+    import_file = imports_dir / "items.jsonl"
+    row = {
+        "title": "Agent workflow benchmark",
+        "url": "https://example.com/agent-workflow?utm_source=x",
+        "source_name": "X 手工导入",
+        "published_at": "2026-07-01T08:00:00+08:00",
+        "content_or_excerpt": "A GitHub agent workflow benchmark with reproducible evaluation.",
+        "direction_hint": "ai_agents",
+    }
+    import_file.write_text(json.dumps(row, ensure_ascii=False), encoding="utf-8")
+
+    common_args = [
+        sys.executable,
+        "-m",
+        "info_radar.cli",
+        "render",
+        "--registry",
+        str(registry_file),
+        "--imports-dir",
+        str(imports_dir),
+        "--output-dir",
+        str(output_dir),
+        "--staging-dir",
+        str(staging_dir),
+        "--db",
+        str(db_path),
+    ]
+    first = subprocess.run(
+        [*common_args, "--date", "2026-07-01"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    second = subprocess.run(
+        [*common_args, "--date", "2026-07-02"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert first.returncode == 0, first.stderr
+    assert second.returncode == 0, second.stderr
+    second_payload = json.loads(second.stdout)
+    assert second_payload["metadata"]["deduped"] == 1
+    assert second_payload["metadata"]["previously_seen"] == 1
+    assert second_payload["metadata"]["cross_day_excluded"] == 1
+    assert second_payload["metadata"]["fresh"] == 0
+
+    second_packet = json.loads((staging_dir / "2026-07-02-candidates.json").read_text(encoding="utf-8"))
+    assert all(not items for items in second_packet["directions"].values())
+    markdown = (staging_dir / "2026-07-02-candidates.md").read_text(encoding="utf-8")
+    assert "跨日排重剔除：1 条" in markdown
+    assert "当日新增候选池：0 条" in markdown
+
+
 def test_cli_publish_writes_processed_markdown_to_obsidian(tmp_path: Path) -> None:
     final_file = tmp_path / "processed.md"
     candidate_json = tmp_path / "candidates.json"
@@ -200,6 +278,12 @@ def test_cli_publish_writes_processed_markdown_to_obsidian(tmp_path: Path) -> No
     assert result.returncode == 0, result.stderr
     report_path = output_dir / "2026-07-01 信息雷达.md"
     report = report_path.read_text(encoding="utf-8")
+    assert report.startswith("---\n")
+    assert 'type: "information-radar"' in report
+    assert 'status: "reference"' in report
+    assert 'date: "2026-07-01"' in report
+    assert "description: \"2026-07-01 信息雷达主线：Agent 工作流开始从脚本集合变成可评测的软件工程系统\"" in report
+    assert "> 数据截止与发布校验：" in report
     assert "## 核心阅读区" in report
     assert "## 深度阅读区" in report
     assert "## 证据区" in report

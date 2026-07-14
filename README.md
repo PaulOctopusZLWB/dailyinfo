@@ -37,6 +37,8 @@ uv run info-radar run --date 2026-07-01
 - `.info_radar/staging/2026-07-01-candidates.md`
 - `.info_radar/staging/2026-07-01-candidates.json`
 
+`run` 默认保留最近 15 天抓取窗口，但会用本机 `.info_radar/radar.sqlite` 排除目标日期之前已进入候选链路的材料，避免连续日报重复同一信息。
+
 加工后的 Markdown 才能发布到 Obsidian：
 
 ```bash

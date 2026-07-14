@@ -22,4 +22,10 @@ def test_default_registry_loads_large_candidate_pool() -> None:
     assert registry.get("cisa-ics-advisories").type == "rss"
     assert registry.get("seeq-blog").type == "rss"
     assert "industrial_ai" in registry.get("manual-industrial-cn").directions
+    assert registry.get("openalex-time-series").type == "openalex"
+    assert registry.get("github-timesfm").github_include_issues is False
+    assert registry.get("atom-jmir-human-factors").include_any
+    assert registry.get("noema-magazine").enabled is True
+    assert "human_digital_twin" in registry.get("tnd-mem0-github").directions
+    assert registry.get("tnd-hn-rss").enabled is False
     assert registry.enabled_sources()

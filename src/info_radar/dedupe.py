@@ -11,7 +11,7 @@ TRACKING_PARAMS = {"fbclid", "gclid", "mc_cid", "mc_eid", "ref", "spm"}
 def dedupe_items(items):
     clusters: Dict[str, list] = {}
     for item in items:
-        key = _cluster_key(item)
+        key = item_identity_key(item)
         clusters.setdefault(key, []).append(item)
 
     deduped = []
@@ -33,9 +33,13 @@ def canonicalize_url(url: str) -> str:
     return urlunsplit((parts.scheme.lower(), parts.netloc.lower(), parts.path.rstrip("/"), urlencode(query), ""))
 
 
-def _cluster_key(item) -> str:
-    canonical_url = canonicalize_url(item.url)
-    title_key = re.sub(r"\W+", " ", item.title.lower()).strip()
+def item_identity_key(item) -> str:
+    return item_identity_key_from_values(item.url, item.title)
+
+
+def item_identity_key_from_values(url: str, title: str) -> str:
+    canonical_url = canonicalize_url(url or "")
+    title_key = re.sub(r"\W+", " ", (title or "").lower()).strip()
     if canonical_url:
         return f"url:{canonical_url}"
     return f"title:{title_key}"

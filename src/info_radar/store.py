@@ -2,6 +2,8 @@ import json
 import sqlite3
 from pathlib import Path
 
+from info_radar.dedupe import item_identity_key_from_values
+
 
 class RadarStore:
     def __init__(self, db_path):
@@ -101,6 +103,16 @@ class RadarStore:
                     for item in items
                 ],
             )
+
+    def get_item_identity_keys_before(self, report_date: str, since_date: str | None = None) -> set[str]:
+        query = "SELECT url, title FROM radar_items WHERE report_date < ?"
+        params: list[str] = [report_date]
+        if since_date:
+            query += " AND report_date >= ?"
+            params.append(since_date)
+        with self._connect() as connection:
+            rows = connection.execute(query, params).fetchall()
+        return {item_identity_key_from_values(url, title) for url, title in rows}
 
     def _connect(self):
         return sqlite3.connect(self.db_path)

@@ -3,98 +3,124 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0e0f11" />
     <title>信息雷达</title>
-    <link rel="stylesheet" href="/assets/styles.css?v=20260701-track-layout" />
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/styles.css?v=20260707-reader-comments-2" />
   </head>
   <body>
-    <div class="techBackdrop" aria-hidden="true">
-      <canvas id="asciiMeshCanvas" class="asciiMeshCanvas"></canvas>
-      <div class="backdropWash"></div>
+    <canvas id="ambientCanvas" class="ambientCanvas" aria-hidden="true"></canvas>
+    <div id="cursorRing" class="cursorRing" aria-hidden="true"></div>
+    <div id="cursorDot" class="cursorDot" aria-hidden="true"></div>
+
+    <div id="entrance" class="entrance" aria-label="跳过启幕">
+      <div class="entranceRadar" aria-hidden="true">
+        <span></span>
+      </div>
+      <div class="entranceTitle">信息雷达</div>
+      <div class="entranceMeta">INFO RADAR · DAILY BRIEF</div>
     </div>
 
-    <header class="topbar">
-      <div class="topbarInner">
+    <div class="appShell">
+      <header class="topbar">
         <div class="brandLockup">
-          <span class="brandMark" aria-hidden="true"></span>
+          <span class="brandMark" aria-hidden="true"><img src="/assets/favicon.svg" alt="" /></span>
           <div>
             <div class="brand">信息雷达</div>
-            <div class="subtitle">TPT技术研发部</div>
+            <div class="subtitle">INFO RADAR</div>
           </div>
         </div>
+        <div class="topbarSpacer"></div>
         <div class="reportControls">
-          <select id="dateSelect" aria-label="选择日报日期"></select>
-          <div id="morningTitle" class="morningTitle">晨报</div>
+          <div class="dateDeck" aria-label="晨报日期翻页">
+            <button id="prevDate" class="pageTurn" type="button" aria-label="上一期">‹</button>
+            <div class="datePage">
+              <span class="dateKicker">DAILY</span>
+              <select id="dateSelect" aria-label="选择日报日期"></select>
+              <div id="morningTitle" class="morningTitle">晨报</div>
+            </div>
+            <button id="nextDate" class="pageTurn" type="button" aria-label="下一期">›</button>
+          </div>
+          <a class="lineButton settingsLink" href="/settings" aria-label="打开 API 配置">配置</a>
+          <button id="themeToggle" class="lineButton" type="button">浅色</button>
         </div>
-        <label class="searchBox">
-          <input id="searchInput" type="search" placeholder="搜索关键词、主题或来源" />
-          <span aria-hidden="true"></span>
-        </label>
-      </div>
-    </header>
+      </header>
 
-    <nav class="categoryBar" aria-label="主题筛选">
-      <div id="categoryTabs" class="categoryTabs"></div>
-    </nav>
+      <nav class="readerNav" aria-label="读者视图">
+        <div id="viewTabs" class="viewTabs"></div>
+        <div id="statsLine" class="statsLine"></div>
+        <div class="filterStrip">
+          <div id="categoryTabs" class="categoryTabs" aria-label="方向筛选"></div>
+          <div id="strengthFilters" class="strengthFilters" aria-label="证据强度筛选"></div>
+          <label class="searchBox">
+            <input id="searchInput" type="search" placeholder="搜索标题与论述..." />
+          </label>
+        </div>
+      </nav>
 
-    <main class="layout" data-api="/api/reports/latest">
-      <section class="content">
-        <section class="overview dashboardPanel" aria-labelledby="overviewTitle">
-          <div class="overviewCopy">
-            <h1 id="overviewTitle">当日信号</h1>
-            <p id="reportMeta">正在载入晨报...</p>
+      <main class="readerMain" data-api="/api/reports/latest">
+        <section id="coreView" class="viewSection" aria-labelledby="coreTitle">
+          <div class="sectionHead">
+            <span>CORE</span>
+            <h1 id="coreTitle">核心阅读</h1>
+            <small id="coreCount">0</small>
           </div>
-          <div class="metricGrid" id="summaryChips"></div>
+          <div id="coreList" class="coreGroups"></div>
         </section>
 
-        <section class="readerSection corePanel" aria-labelledby="coreTitle">
-          <div class="sectionHeader">
-            <div>
-              <h2 id="coreTitle">重点判断</h2>
-              <p>先看这些变化</p>
-            </div>
+        <section id="deepView" class="viewSection" aria-labelledby="deepTitle" hidden>
+          <div class="sectionHead">
+            <span>DEEP</span>
+            <h1 id="deepTitle">深度阅读</h1>
+            <small id="deepCount">0</small>
           </div>
-          <div class="coreList" id="coreList"></div>
-          <div id="sectionEnd" class="sectionEnd"></div>
+          <div id="deepList" class="deepGrid"></div>
         </section>
 
-        <section class="readerSection deepPanel" aria-labelledby="deepTitle">
-          <div class="sectionHeader">
-            <div>
-              <h2 id="deepTitle">来源解读</h2>
-              <p>每张卡对应一个来源</p>
-            </div>
+        <section id="evidenceView" class="viewSection narrow" aria-labelledby="evidenceTitle" hidden>
+          <div class="sectionHead">
+            <span>EVIDENCE</span>
+            <h1 id="evidenceTitle">证据回溯</h1>
+            <small id="evidenceCount">0</small>
           </div>
-          <div class="deepList" id="deepList"></div>
+          <div id="evidenceList" class="evidenceList"></div>
         </section>
-      </section>
 
-      <aside class="sideRail">
-        <section class="railBlock pathBlock">
-          <h2>阅读顺序</h2>
-          <ol id="readingPath" class="pathList"></ol>
+        <section id="archiveView" class="viewSection narrow" aria-labelledby="archiveTitle" hidden>
+          <div class="sectionHead">
+            <span>ARCHIVE</span>
+            <h1 id="archiveTitle">归档</h1>
+            <small id="archiveCount">0</small>
+          </div>
+          <div id="archiveList" class="archiveList"></div>
         </section>
-        <section class="railBlock">
-          <h2>处理统计</h2>
-          <div id="runStats" class="runStats"></div>
-        </section>
-        <section class="railBlock">
-          <h2>来源分布</h2>
-          <div id="sourceList" class="sourceList"></div>
-        </section>
+      </main>
+
+      <footer class="readerFoot">
+        <span>INFO RADAR v0 · LOCAL-FIRST</span>
+        <span>核心阅读 -> 深度阅读 -> 证据回溯 -> 原文</span>
+      </footer>
+    </div>
+
+    <div id="drawerBackdrop" class="drawerBackdrop" hidden>
+      <aside id="deepDrawer" class="deepDrawer" aria-hidden="true" aria-labelledby="drawerTitle">
+        <div class="drawerHeader">
+          <div>
+            <div id="drawerMeta" class="drawerMeta">DEEP</div>
+            <h2 id="drawerTitle">深读卡</h2>
+          </div>
+          <button id="closeDrawer" class="iconButton" type="button" aria-label="关闭深读卡">×</button>
+        </div>
+        <div id="drawerBody" class="drawerBody"></div>
       </aside>
-    </main>
+    </div>
 
-    <aside class="evidenceDrawer" id="evidenceDrawer" aria-hidden="true">
-      <div class="drawerHeader">
-        <div>
-          <div class="drawerEyebrow">原始来源</div>
-          <h2 id="drawerTitle">来源详情</h2>
-        </div>
-        <button id="closeDrawer" class="iconButton" type="button" aria-label="关闭证据">关闭</button>
-      </div>
-      <div id="drawerBody" class="drawerBody"></div>
-    </aside>
-
-    <script src="/assets/app.js?v=20260701-track-layout"></script>
+    <script src="/assets/app.js?v=20260707-reader-comments-2"></script>
   </body>
 </html>

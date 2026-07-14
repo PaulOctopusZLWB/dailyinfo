@@ -11,14 +11,19 @@ from fastapi.responses import JSONResponse
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from info_radar.api_credentials import ApiCredentialStore, CredentialValidationError
+
 
 def create_app(
     reports_dir: Path | str = ".info_radar/published",
     static_dir: Path | str | None = None,
     analytics_path: Path | str = ".info_radar/analytics/events.jsonl",
+    credentials_path: Path | str = ".env",
+    settings_local_only: bool = True,
 ) -> FastAPI:
     repository = ReportRepository(reports_dir)
     analytics = AnalyticsRepository(analytics_path)
+    credentials = ApiCredentialStore(credentials_path)
     app = FastAPI(title="Info Radar Reader", docs_url=None, redoc_url=None)
     allowed_networks = parse_allowed_client_networks(os.environ.get("INFO_RADAR_ALLOWED_CLIENT_NETS", ""))
 
@@ -70,15 +75,66 @@ def create_app(
     def analytics_summary(date: str = Query(..., min_length=10, max_length=10)) -> dict[str, Any]:
         return analytics.summary(date)
 
+    def require_local_settings_access(request: Request) -> None:
+        client_host = request.client.host if request.client else ""
+        if settings_local_only and not client_host_is_loopback(client_host):
+            raise HTTPException(status_code=403, detail="API settings are available from localhost only")
+
+    @app.get("/api/settings/credentials")
+    def credential_status(request: Request) -> JSONResponse:
+        require_local_settings_access(request)
+        return JSONResponse(
+            {
+                "credentials": credentials.status(),
+                "storage": {
+                    "path": str(credentials.path),
+                    "local_only": True,
+                    "returns_secret_values": False,
+                },
+            },
+            headers={"Cache-Control": "no-store"},
+        )
+
+    @app.post("/api/settings/credentials")
+    async def update_credentials(request: Request) -> JSONResponse:
+        require_local_settings_access(request)
+        content_length = _safe_int(request.headers.get("content-length"))
+        if content_length > 24_000:
+            raise HTTPException(status_code=413, detail="Credential payload is too large")
+        if not request.headers.get("content-type", "").lower().startswith("application/json"):
+            raise HTTPException(status_code=415, detail="Content-Type must be application/json")
+        try:
+            payload = await request.json()
+        except (ValueError, json.JSONDecodeError) as exc:
+            raise HTTPException(status_code=400, detail="Invalid JSON payload") from exc
+        if not isinstance(payload, dict):
+            raise HTTPException(status_code=400, detail="Credential payload must be an object")
+        try:
+            status = credentials.update(payload.get("values", {}), payload.get("clear", []))
+        except CredentialValidationError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return JSONResponse(
+            {"credentials": status, "saved": sorted(payload.get("values", {})), "cleared": sorted(payload.get("clear", []))},
+            headers={"Cache-Control": "no-store"},
+        )
+
     if static_dir is not None:
         static_path = Path(static_dir)
         index_path = static_path / "index.html"
+        settings_path = static_path / "settings.html"
 
         @app.get("/")
         def index() -> FileResponse:
             if not index_path.exists():
                 raise HTTPException(status_code=404, detail="Reader UI not found")
             return FileResponse(index_path)
+
+        @app.get("/settings")
+        def settings(request: Request) -> FileResponse:
+            require_local_settings_access(request)
+            if not settings_path.exists():
+                raise HTTPException(status_code=404, detail="API settings UI not found")
+            return FileResponse(settings_path, headers={"Cache-Control": "no-store"})
 
         app.mount("/assets", StaticFiles(directory=static_path), name="assets")
 
@@ -289,6 +345,13 @@ def client_host_allowed(host: str, networks) -> bool:
     except ValueError:
         return False
     return any(client_ip in network for network in networks)
+
+
+def client_host_is_loopback(host: str) -> bool:
+    try:
+        return ip_address(host).is_loopback
+    except ValueError:
+        return False
 
 
 def _clean_string(value: Any, max_length: int) -> str:
