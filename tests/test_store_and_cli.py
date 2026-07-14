@@ -4,7 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from info_radar.cli import load_local_env
+from info_radar.cli import build_parser, load_local_env
 from info_radar.store import RadarStore
 
 
@@ -27,6 +27,20 @@ def test_load_local_env_does_not_override_exported_values(tmp_path: Path, monkey
 
     assert os.environ["X_BEARER_TOKEN"] == "local-token"
     assert os.environ["GITHUB_TOKEN"] == "exported-token"
+
+
+def test_build_parser_uses_persistent_runtime_paths_from_environment(tmp_path: Path, monkeypatch) -> None:
+    web_output_dir = tmp_path / "published"
+    credentials_path = tmp_path / ".env"
+    monkeypatch.setenv("INFO_RADAR_WEB_OUTPUT_DIR", str(web_output_dir))
+    monkeypatch.setenv("INFO_RADAR_CREDENTIALS_PATH", str(credentials_path))
+
+    web_args = build_parser().parse_args(["web"])
+    publish_args = build_parser().parse_args(["publish", "--final-file", str(tmp_path / "report.md")])
+
+    assert web_args.reports_dir == web_output_dir
+    assert web_args.credentials_path == credentials_path
+    assert publish_args.web_output_dir == web_output_dir
 
 
 def test_cli_run_generates_candidate_packet_without_obsidian_report(tmp_path: Path) -> None:

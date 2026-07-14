@@ -19,9 +19,13 @@ DEFAULT_OUTPUT_DIR = Path(os.environ.get("INFO_RADAR_OUTPUT_DIR", ".info_radar/r
 DEFAULT_STAGING_DIR = Path(".info_radar/staging")
 DEFAULT_WEB_OUTPUT_DIR = Path(".info_radar/published")
 DEFAULT_STATIC_DIR = Path("web")
+DEFAULT_RUNTIME_DIR = Path.home() / "Library" / "Application Support" / "InfoRadar"
+DEFAULT_CREDENTIALS_PATH = DEFAULT_RUNTIME_DIR / ".env"
 
 
 def main(argv=None):
+    credentials_path = Path(os.environ.get("INFO_RADAR_CREDENTIALS_PATH", DEFAULT_CREDENTIALS_PATH))
+    load_local_env(credentials_path)
     load_local_env(Path(".env"))
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -106,7 +110,11 @@ def main(argv=None):
 
             from info_radar.web_app import create_app
 
-            app = create_app(reports_dir=args.reports_dir, static_dir=args.static_dir)
+            app = create_app(
+                reports_dir=args.reports_dir,
+                static_dir=args.static_dir,
+                credentials_path=args.credentials_path,
+            )
             uvicorn.run(app, host=args.host, port=args.port)
             return 0
         parser.print_help()
@@ -117,6 +125,10 @@ def main(argv=None):
 
 
 def build_parser():
+    configured_web_output_dir = Path(os.environ.get("INFO_RADAR_WEB_OUTPUT_DIR", DEFAULT_WEB_OUTPUT_DIR))
+    configured_credentials_path = Path(
+        os.environ.get("INFO_RADAR_CREDENTIALS_PATH", DEFAULT_CREDENTIALS_PATH)
+    )
     parser = argparse.ArgumentParser(prog="info-radar")
     subparsers = parser.add_subparsers(dest="command")
 
@@ -138,15 +150,16 @@ def build_parser():
     publish_parser.add_argument("--date", default=None, help="Report date in YYYY-MM-DD. Defaults to Asia/Shanghai today.")
     publish_parser.add_argument("--final-file", type=Path, required=True)
     publish_parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
-    publish_parser.add_argument("--web-output-dir", type=Path, default=DEFAULT_WEB_OUTPUT_DIR)
+    publish_parser.add_argument("--web-output-dir", type=Path, default=configured_web_output_dir)
     publish_parser.add_argument("--candidate-json", type=Path, default=None)
     publish_parser.add_argument("--registry", type=Path, default=Path("config/source_registry.yml"))
 
     web_parser = subparsers.add_parser("web", help="Serve the reader-facing internal web page and read-only API.")
     web_parser.add_argument("--host", default="127.0.0.1")
     web_parser.add_argument("--port", type=int, default=8787)
-    web_parser.add_argument("--reports-dir", type=Path, default=DEFAULT_WEB_OUTPUT_DIR)
+    web_parser.add_argument("--reports-dir", type=Path, default=configured_web_output_dir)
     web_parser.add_argument("--static-dir", type=Path, default=DEFAULT_STATIC_DIR)
+    web_parser.add_argument("--credentials-path", type=Path, default=configured_credentials_path)
     return parser
 
 

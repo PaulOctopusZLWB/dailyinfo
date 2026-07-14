@@ -8,8 +8,8 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/zsh</string>
-    <string>-lc</string>
-    <string>PROJECT_DIR="${INFO_RADAR_PROJECT_DIR:-$HOME/Documents/info_radar}" &amp;&amp; cd "$PROJECT_DIR" &amp;&amp; exec "$PROJECT_DIR/ops/bin/run-web.sh"</string>
+    <string>-c</string>
+    <string>exec "$HOME/Library/Application Support/InfoRadar/run-web.sh"</string>
   </array>
 
   <key>WorkingDirectory</key>

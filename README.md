@@ -92,7 +92,7 @@ CLI 会自动读取当前目录 `.env`，但不会覆盖已经在 shell 中 expo
 
 ## Web Reader
 
-发布后的 JSON 默认写入 `.info_radar/published`。本机读者页启动方式：
+未安装常驻服务时，发布后的 JSON 默认写入 `.info_radar/published`。本机读者页启动方式：
 
 ```bash
 uv run info-radar web --host 127.0.0.1 --port 8787
@@ -110,15 +110,15 @@ tmux new-session -d -s info-radar-web -c "$PWD" './ops/bin/run-web.sh'
 INFO_RADAR_ALLOWED_CLIENT_NETS=127.0.0.0/8,::1/128,10.0.0.0/8 ./ops/bin/run-web.sh
 ```
 
-常驻服务使用 launchd：
+常驻服务使用 launchd。安装器会把运行副本、凭据和已发布 JSON 放在
+`~/Library/Application Support/InfoRadar`，避免 macOS 在重启登录后阻止后台进程读取 `Documents`：
 
 ```bash
-mkdir -p ~/Library/LaunchAgents .info_radar/logs
-cp ops/launchd/com.paul.info-radar-web.plist ~/Library/LaunchAgents/
-launchctl setenv INFO_RADAR_PROJECT_DIR "$PWD"
-launchctl bootstrap "gui/$(id -u)" ~/Library/LaunchAgents/com.paul.info-radar-web.plist
-launchctl kickstart -k "gui/$(id -u)/com.paul.info-radar-web"
+./ops/bin/install-web-service.sh
 ```
+
+安装后，CLI 会从运行目录读取共享凭据，并把后续 `publish` 的网页 JSON 默认写到常驻服务目录。
+代码或前端更新后重新运行安装器即可同步运行副本并重启服务。
 
 当前服务地址：
 
