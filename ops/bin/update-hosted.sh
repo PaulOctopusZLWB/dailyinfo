@@ -31,7 +31,7 @@ export UV_CACHE_DIR="${UV_CACHE_DIR:-$PROJECT_DIR/.tmp/uv-cache}"
 "$UV_BIN" sync --frozen
 "$PROJECT_DIR/ops/bin/install-web-service.sh"
 
-for attempt in {1..20}; do
+for attempt in {1..60}; do
   if /usr/bin/curl -fsS http://127.0.0.1:8787/api/health >/dev/null; then
     printf 'Info Radar hosted update complete: %s@%s\n' "$BRANCH" "$(git rev-parse --short HEAD)"
     exit 0

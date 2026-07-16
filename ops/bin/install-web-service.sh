@@ -14,6 +14,10 @@ mkdir -p "$RUNTIME_DIR/app" "$RUNTIME_DIR/published" "$HOME/Library/LaunchAgents
 /usr/bin/rsync -a --delete "$PROJECT_DIR/.venv/" "$RUNTIME_DIR/.venv/"
 /usr/bin/rsync -a "$PROJECT_DIR/.info_radar/published/" "$RUNTIME_DIR/published/"
 
+# The project venv is editable during development, but a resident LaunchAgent must
+# not follow its .pth file back into the macOS-protected Documents directory.
+/usr/bin/find "$RUNTIME_DIR/.venv" -path '*/site-packages/__editable__.info_radar-*.pth' -delete
+
 cp "$PROJECT_DIR/ops/bin/run-web.sh" "$RUNTIME_DIR/run-web.sh"
 chmod 755 "$RUNTIME_DIR/run-web.sh"
 
