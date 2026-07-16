@@ -36,7 +36,18 @@ chmod 600 "$RUNTIME_DIR/.env"
 
 cp "$PROJECT_DIR/ops/launchd/com.paul.info-radar-web.plist" "$LAUNCH_AGENT"
 launchctl bootout "$SERVICE" 2>/dev/null || true
-launchctl bootstrap "gui/$(id -u)" "$LAUNCH_AGENT"
+bootstrapped=0
+for attempt in {1..15}; do
+  if launchctl bootstrap "gui/$(id -u)" "$LAUNCH_AGENT" 2>/dev/null; then
+    bootstrapped=1
+    break
+  fi
+  sleep 1
+done
+if (( ! bootstrapped )); then
+  print -u2 "Info Radar service could not be registered with launchd"
+  exit 1
+fi
 launchctl kickstart -k "$SERVICE"
 
 printf 'Info Radar service installed at %s\n' "$RUNTIME_DIR"
