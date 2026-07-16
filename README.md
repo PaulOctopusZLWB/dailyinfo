@@ -128,6 +128,22 @@ INFO_RADAR_ALLOWED_CLIENT_NETS=127.0.0.0/8,::1/128,10.0.0.0/8 ./ops/bin/run-web.
 
 `http://<this-machine-lan-ip>:8787/`
 
+### Mac mini 托管与笔记拉取
+
+托管节点使用 `ops/bin/update-hosted.sh` 在干净工作区内执行 fast-forward 更新、冻结依赖同步、LaunchAgent 安装和健康检查。首次迁移可用 `--no-pull` 验证已同步的本地提交：
+
+```bash
+./ops/bin/update-hosted.sh --no-pull
+```
+
+笔记本不运行采集或 Web 服务，只从托管节点拉取 `信息雷达/` 输出。复制 `config/remote_host.env.example` 到 `~/.config/info-radar/remote.env`，按当前主机名或 IP 修改 `INFO_RADAR_REMOTE_HOST`，然后运行：
+
+```bash
+./ops/bin/pull-obsidian-from-host.sh
+```
+
+脚本不删除本地文件；覆盖前的版本保存在 Vault 内 `.info-radar-pull-backups/`。可先用 `--dry-run` 验证。主机 IP 变化时只需更新 `remote.env`，无需修改仓库脚本或 automation。
+
 读者页会记录匿名阅读行为，供维护者复盘信息质量；统计结果不会自动回写读者页推荐或内容排序。事件写入 `.info_radar/analytics/events.jsonl`，默认只保存匿名 session/visit、页面与卡片有效停留、深读和来源打开、筛选搜索，以及最多 120 字的划取摘要，不保存用户姓名或完整鼠标轨迹。`GET /api/analytics/recent?days=7` 仅允许本机访问，用于查看按真实活动日期聚合的访问、显式行为、热点和数据质量提示。
 
 ## v0 Boundaries
