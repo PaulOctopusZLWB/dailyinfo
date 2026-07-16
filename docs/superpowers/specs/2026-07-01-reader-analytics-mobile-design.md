@@ -6,13 +6,14 @@ Info Radar reader is an internal information display surface. Analytics should m
 
 ## Data Flow
 
-The browser creates or reuses an anonymous `info_radar_session_id`. It batches client events and sends them to `POST /api/analytics/events` using `fetch` and `sendBeacon`. The server appends normalized events to `.info_radar/analytics/events.jsonl`. `GET /api/analytics/summary?date=YYYY-MM-DD` aggregates the event log by report date.
+The browser creates or reuses an anonymous `info_radar_session_id` and a visit ID that rolls over after 30 minutes without interaction. It batches client events and sends them to `POST /api/analytics/events` using `fetch` and `sendBeacon`. The server appends normalized events to `.info_radar/analytics/events.jsonl`. `GET /api/analytics/summary?date=YYYY-MM-DD` aggregates the event log by report date. Local-only `GET /api/analytics/recent?days=7` aggregates by the actual Asia/Shanghai activity date, reconstructs visits for legacy events, caps passive dwell, and excludes obvious test sessions from hotspot rankings.
 
 ## Events
 
 - `page_view`: report opened.
 - `page_heartbeat`: active page dwell time.
 - `item_view`: C/D/E item stayed in viewport.
+- `deep_open`: user explicitly opened a deep-reading drawer.
 - `source_open`: user opened a source drawer.
 - `search`: user changed search text.
 - `filter`: user changed direction filter.
@@ -20,7 +21,7 @@ The browser creates or reuses an anonymous `info_radar_session_id`. It batches c
 
 ## Reader Output
 
-The web reader does not expose analytics to readers. Collection runs quietly in the background. Group-level summaries are available only through the internal `GET /api/analytics/summary` endpoint or the local `.info_radar/analytics/events.jsonl` log for later source weighting and quality analysis.
+The web reader does not expose analytics or recommendations to readers. Collection runs quietly in the background and never changes reader-side ordering. Group-level summaries are available only through the internal analytics endpoints or the local `.info_radar/analytics/events.jsonl` log for maintainer review.
 
 ## Mobile Design
 

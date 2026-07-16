@@ -39,7 +39,7 @@ def test_candidate_packet_is_staging_input_not_final_report() -> None:
     assert "100-200 字中文 abstract" in markdown
     assert "每条核心观点标题必须带可点击的 `「link」`" in markdown
     assert "推荐理由必须说明具体信息增量" in markdown
-    assert "候选目标：60 条（6 个方向，每组目标 10 条）" in markdown
+    assert "候选目标：70 条（7 个方向，每组目标 10 条）" in markdown
     assert payload["status"] == "staging_requires_codex_processing"
     assert payload["processing_protocol"]["version"] == "deep_reading_v1"
     assert payload["processing_protocol"]["required_sections"] == ["核心阅读区", "深度阅读区", "证据区"]
@@ -48,4 +48,5 @@ def test_candidate_packet_is_staging_input_not_final_report() -> None:
     assert payload["processing_protocol"]["link_contract"]["max_explicit_deep_links_per_core"] == 3
     assert "discretize distinct viewpoints" in payload["processing_protocol"]["core_strategy"]
     assert "ai_philosophy" in payload["directions"]
+    assert "dynamical_systems" in payload["directions"]
     assert payload["directions"]["ai_agents"][0]["title"] == "Agent workflow repo"

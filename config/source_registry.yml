@@ -3,7 +3,7 @@ sources:
     name: Bilibili 手工/实验入口
     type: bilibili
     url: bilibili://manual
-    directions: [macro_ai, temporal, industrial_ai, ai_agents, human_digital_twin, ai_philosophy]
+    directions: [macro_ai, temporal, industrial_ai, ai_agents, human_digital_twin, ai_philosophy, dynamical_systems]
     language_hint: zh
     priority: 75
     enabled: true
@@ -12,7 +12,7 @@ sources:
     name: X 手工/官方 API 入口
     type: x
     url: x://manual
-    directions: [macro_ai, temporal, industrial_ai, ai_agents, human_digital_twin, ai_philosophy]
+    directions: [macro_ai, temporal, industrial_ai, ai_agents, human_digital_twin, ai_philosophy, dynamical_systems]
     language_hint: mixed
     priority: 80
     enabled: true
@@ -21,7 +21,7 @@ sources:
     name: 知识星球手工入口
     type: zsxq
     url: zsxq://manual
-    directions: [macro_ai, temporal, industrial_ai, ai_agents, human_digital_twin, ai_philosophy]
+    directions: [macro_ai, temporal, industrial_ai, ai_agents, human_digital_twin, ai_philosophy, dynamical_systems]
     language_hint: zh
     priority: 80
     enabled: true
@@ -30,7 +30,7 @@ sources:
     name: 受限中文信息源手工导入
     type: manual
     url: file://imports
-    directions: [macro_ai, temporal, industrial_ai, ai_agents, human_digital_twin, ai_philosophy]
+    directions: [macro_ai, temporal, industrial_ai, ai_agents, human_digital_twin, ai_philosophy, dynamical_systems]
     language_hint: zh
     priority: 70
     enabled: true
@@ -100,6 +100,19 @@ sources:
     enabled: true
     notes: 时序模型、预测、temporal reasoning 查询。
 
+  - id: arxiv-dynamical-systems-reconstruction
+    name: arXiv dynamical systems reconstruction
+    type: arxiv
+    url: "https://export.arxiv.org/api/query?search_query=all:%22dynamical%20system%20reconstruction%22%20OR%20all:%22system%20identification%22%20OR%20all:%22latent%20dynamics%22%20OR%20all:%22state%20space%20reconstruction%22&sortBy=submittedDate&sortOrder=descending&max_results=40"
+    directions: [dynamical_systems]
+    language_hint: en
+    priority: 90
+    enabled: true
+    include_any: [dynamical system reconstruction, dynamical systems reconstruction, system identification, latent dynamics, latent dynamical, state space reconstruction, state-space reconstruction, partial observations, partially observed]
+    include_title_any: [dynamical system reconstruction, dynamical systems reconstruction, system identification, latent dynamics, latent dynamical, state space reconstruction, state-space reconstruction, attractor reconstruction, equation discovery, governing equations, learning nonlinear dynamics, nonlinear dynamical systems, sparse identification, koopman, neural ode, neural sde]
+    exclude_any: [building energy, battery state of charge, wireless channel, power converter, motor parameter, vehicle suspension]
+    notes: 专门跟踪从时间序列或部分观测中恢复隐状态、生成动力学和长期几何结构的研究；排除只做预测或单一设备参数估计的论文。
+
   - id: openalex-time-series
     name: OpenAlex time-series research
     type: openalex
@@ -111,6 +124,18 @@ sources:
     include_any: [time series, time-series, forecasting, temporal, foundation model]
     exclude_any: [asset pricing, stock market, financial market, cryptocurrency, portfolio, trading, realized volatility, econometric, finance, financial]
     notes: 用 OpenAlex 补充 arXiv 之外的时序论文与跨出版社元数据；需要 OPENALEX_API_KEY。
+  - id: openalex-dynamical-systems-reconstruction
+    name: OpenAlex dynamical systems reconstruction
+    type: openalex
+    url: "https://api.openalex.org/works?search=%22dynamical%20system%20reconstruction%22%20OR%20%22system%20identification%22%20OR%20%22latent%20dynamics%22%20OR%20%22state-space%20reconstruction%22&per-page=50"
+    directions: [dynamical_systems]
+    language_hint: en
+    priority: 82
+    enabled: true
+    include_any: [dynamical system reconstruction, dynamical systems reconstruction, system identification, latent dynamics, latent dynamical, state space reconstruction, state-space reconstruction, partial observations, partially observed, attractor reconstruction]
+    include_title_any: [dynamical system reconstruction, dynamical systems reconstruction, system identification, latent dynamics, latent dynamical, state space reconstruction, state-space reconstruction, attractor reconstruction]
+    exclude_any: [building energy, battery state of charge, wireless channel, power converter, motor parameter, vehicle suspension]
+    notes: 补充跨出版社的动力系统重建、潜在动力学与数据驱动系统辨识论文；需要 OPENALEX_API_KEY。
   - id: openalex-human-ai
     name: OpenAlex human-AI and personal data research
     type: openalex

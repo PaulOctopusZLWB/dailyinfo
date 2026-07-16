@@ -23,6 +23,8 @@ def test_default_registry_loads_large_candidate_pool() -> None:
     assert registry.get("seeq-blog").type == "rss"
     assert "industrial_ai" in registry.get("manual-industrial-cn").directions
     assert registry.get("openalex-time-series").type == "openalex"
+    assert registry.get("arxiv-dynamical-systems-reconstruction").directions == ("dynamical_systems",)
+    assert registry.get("openalex-dynamical-systems-reconstruction").include_title_any
     assert registry.get("github-timesfm").github_include_issues is False
     assert registry.get("atom-jmir-human-factors").include_any
     assert registry.get("noema-magazine").enabled is True

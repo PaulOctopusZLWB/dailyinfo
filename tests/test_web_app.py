@@ -1,9 +1,10 @@
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from info_radar.web_app import client_host_allowed, create_app, parse_allowed_client_networks
+from info_radar.web_app import AnalyticsRepository, client_host_allowed, create_app, parse_allowed_client_networks
 
 
 def write_report(path: Path, date: str, title: str) -> None:
@@ -168,6 +169,139 @@ def test_web_api_records_and_summarizes_reader_analytics(tmp_path: Path) -> None
     assert '"selected_text_excerpt": "' + ("x" * 120) + '"' in stored_event
 
 
+def test_analytics_tracks_visits_dimensions_and_explicit_hotspot_actions(tmp_path: Path) -> None:
+    analytics_path = tmp_path / "analytics" / "events.jsonl"
+    repository = AnalyticsRepository(analytics_path)
+    accepted = repository.record_events(
+        [
+            {
+                "event_type": "item_view",
+                "event_id": "event-1",
+                "session_id": "session-a",
+                "visit_id": "visit-a",
+                "report_date": "2026-07-16",
+                "item_layer": "deep",
+                "item_id": "D1",
+                "direction_id": "macro",
+                "duration_ms": 180_000,
+                "created_at": "2026-07-16T08:00:00+08:00",
+            },
+            {
+                "event_type": "deep_open",
+                "event_id": "event-2",
+                "session_id": "session-a",
+                "visit_id": "visit-a",
+                "report_date": "2026-07-16",
+                "item_layer": "deep",
+                "item_id": "D1",
+                "direction_id": "macro",
+                "created_at": "2026-07-16T08:00:03+08:00",
+            },
+            {
+                "event_type": "source_open",
+                "event_id": "event-3",
+                "session_id": "session-a",
+                "visit_id": "visit-a",
+                "report_date": "2026-07-16",
+                "item_layer": "evidence",
+                "item_id": "E1",
+                "context_item_id": "D1",
+                "direction_id": "macro",
+                "source_category": "学术论文",
+                "created_at": "2026-07-16T08:00:05+08:00",
+            },
+            {
+                "event_type": "search",
+                "event_id": "event-4",
+                "session_id": "session-a",
+                "visit_id": "visit-b",
+                "report_date": "2026-07-16",
+                "query": "动力系统重建" * 10,
+                "created_at": "2026-07-16T10:00:00+08:00",
+            },
+            {
+                "event_type": "filter",
+                "event_id": "event-5",
+                "session_id": "session-a",
+                "visit_id": "visit-b",
+                "report_date": "2026-07-16",
+                "filter_type": "direction",
+                "filter_value": "dynamical_systems",
+                "created_at": "2026-07-16T10:00:01+08:00",
+            },
+        ]
+    )
+
+    assert accepted == 5
+    summary = repository.summary("2026-07-16")
+    assert summary["active_sessions"] == 1
+    assert summary["active_visits"] == 2
+    assert summary["deep_opens"] == 1
+    assert summary["source_opens"] == 1
+    assert summary["hot_items"][0]["item_id"] == "D1"
+    assert summary["hot_items"][0]["view_duration_ms"] == 120_000
+    assert summary["hot_items"][0]["deep_opens"] == 1
+    assert summary["hot_items"][0]["source_opens"] == 1
+
+    stored = [json.loads(line) for line in analytics_path.read_text(encoding="utf-8").splitlines()]
+    assert stored[0]["event_id"] == "event-1"
+    assert stored[0]["visit_id"] == "visit-a"
+    assert stored[2]["context_item_id"] == "D1"
+    assert stored[3]["query"] == ("动力系统重建" * 10)[:80]
+    assert stored[4]["filter_type"] == "direction"
+    assert stored[4]["filter_value"] == "dynamical_systems"
+
+
+def test_recent_analytics_reconstructs_legacy_visits_and_excludes_test_sessions(tmp_path: Path) -> None:
+    analytics_path = tmp_path / "events.jsonl"
+    analytics_path.write_text(
+        "\n".join(
+            json.dumps(event)
+            for event in [
+                {
+                    "event_type": "page_view",
+                    "session_id": "session-a",
+                    "report_date": "2026-07-16",
+                    "created_at": "2026-07-16T08:00:00+08:00",
+                },
+                {
+                    "event_type": "page_heartbeat",
+                    "session_id": "session-a",
+                    "report_date": "2026-07-16",
+                    "duration_ms": 90_000,
+                    "created_at": "2026-07-16T08:00:15+08:00",
+                },
+                {
+                    "event_type": "page_view",
+                    "session_id": "session-a",
+                    "report_date": "2026-07-16",
+                    "created_at": "2026-07-16T09:00:00+08:00",
+                },
+                {
+                    "event_type": "source_open",
+                    "session_id": "manual-check",
+                    "report_date": "2026-07-16",
+                    "item_id": "E1",
+                    "created_at": "2026-07-16T09:00:01+08:00",
+                },
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    repository = AnalyticsRepository(analytics_path)
+
+    recent = repository.recent(days=1, now=datetime(2026, 7, 16, 4, 0, tzinfo=timezone.utc))
+
+    assert recent["events"] == 3
+    assert recent["sessions"] == 1
+    assert recent["visits"] == 2
+    assert recent["daily"][0]["page_active_ms"] == 15_000
+    assert recent["quality"]["test_events_excluded"] == 1
+    assert recent["quality"]["legacy_events_missing_visit_id"] == 4
+    assert recent["quality"]["heartbeat_duration_is_capped"] is True
+
+
 def test_web_api_returns_404_for_missing_report(tmp_path: Path) -> None:
     client = TestClient(create_app(reports_dir=tmp_path / "published", static_dir=None))
 
@@ -262,6 +396,11 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "IntersectionObserver" in js
     assert "sendBeacon" in js
     assert "selectionchange" in js
+    assert "VISIT_TIMEOUT_MS" in js
+    assert "USER_IDLE_TIMEOUT_MS" in js
+    assert 'trackEvent("deep_open"' in js
+    assert "visit_id: state.visitId" in js
+    assert "event_id: createAnonymousId" in js
     assert "/api/analytics/events" in js
     assert "/api/analytics/summary" not in js
     assert "renderIcon" not in js
@@ -271,6 +410,10 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "directionById" in js
     assert "directionByLabel" in js
     assert "normalizeDirectionLabel" in js
+    assert 'id: "dynamical_systems"' in js
+    assert 'code: "DS"' in js
+    assert 'label: "动力系统重建"' in js
+    assert '"数据驱动的动力系统重建与系统辨识": "dynamical_systems"' in js
     assert "visibleEvidenceItems" in js
     assert "核心论述" in js
     assert "对我们的影响" in js

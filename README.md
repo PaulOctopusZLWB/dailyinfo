@@ -1,6 +1,6 @@
 # Info Radar
 
-Info Radar v0 是一个本地优先的手动决策雷达。它读取候选源池和手工导入材料，去重、评分、按六个方向分组，并生成 staging 候选包。
+Info Radar v0 是一个本地优先的手动决策雷达。它读取候选源池和手工导入材料，去重、评分、按七个方向分组，并生成 staging 候选包。
 
 仓库只归档服务代码、源注册表、测试、前端读者页和运维脚本；真实 token、已发布 JSON、阅读行为日志、候选包和业务日报都留在本机 `.env` 或 `.info_radar/`，不会提交到 git。
 
@@ -128,7 +128,7 @@ INFO_RADAR_ALLOWED_CLIENT_NETS=127.0.0.0/8,::1/128,10.0.0.0/8 ./ops/bin/run-web.
 
 `http://<this-machine-lan-ip>:8787/`
 
-读者页会记录匿名阅读行为，用于改进信息质量和源权重。事件写入 `.info_radar/analytics/events.jsonl`，默认只保存匿名 session、页面/卡片停留、来源打开、筛选搜索和最多 120 字的划取摘要，不保存用户姓名或完整鼠标轨迹。
+读者页会记录匿名阅读行为，供维护者复盘信息质量；统计结果不会自动回写读者页推荐或内容排序。事件写入 `.info_radar/analytics/events.jsonl`，默认只保存匿名 session/visit、页面与卡片有效停留、深读和来源打开、筛选搜索，以及最多 120 字的划取摘要，不保存用户姓名或完整鼠标轨迹。`GET /api/analytics/recent?days=7` 仅允许本机访问，用于查看按真实活动日期聚合的访问、显式行为、热点和数据质量提示。
 
 ## v0 Boundaries
 

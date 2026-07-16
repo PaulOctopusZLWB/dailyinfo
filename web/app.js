@@ -1,3 +1,8 @@
+const VISIT_TIMEOUT_MS = 30 * 60 * 1000;
+const USER_IDLE_TIMEOUT_MS = 60 * 1000;
+const HEARTBEAT_INTERVAL_MS = 15 * 1000;
+const initialVisit = getOrCreateVisit();
+
 const state = {
   report: null,
   reports: [],
@@ -6,12 +11,16 @@ const state = {
   activeDirection: "all",
   activeStrength: "all",
   sessionId: getOrCreateSessionId(),
+  visitId: initialVisit.visitId,
+  lastInteractionAt: initialVisit.lastActivityAt,
+  lastVisitPersistedAt: initialVisit.lastActivityAt,
   eventQueue: [],
   visibleItems: new Map(),
   itemObserver: null,
   lastHeartbeatAt: Date.now(),
   searchTimer: 0,
   selectionTimer: 0,
+  currentDeepContext: null,
   fx: null,
 };
 
@@ -58,6 +67,32 @@ const DIRECTIONS = [
   { id: "agent", code: "AG", label: "Agent 方法论", keywords: ["Agent", "agent", "GitHub", "SDK", "工具", "沙盒", "benchmark", "复现"] },
   { id: "twin", code: "TW", label: "数字孪生", keywords: ["数字孪生", "孪生", "个人上下文", "仿真", "上下文系统"] },
   { id: "philosophy", code: "PH", label: "泛哲学", keywords: ["哲学", "自由意志", "责任", "主体", "人机", "意识", "边界"] },
+  {
+    id: "dynamical_systems",
+    code: "DS",
+    label: "动力系统重建",
+    keywords: [
+      "动力系统重建",
+      "动力学重建",
+      "系统辨识",
+      "状态空间重建",
+      "隐状态",
+      "部分观测",
+      "随机动力学",
+      "非线性动力学",
+      "混沌动力学",
+      "吸引子",
+      "dynamical system reconstruction",
+      "system identification",
+      "latent dynamics",
+      "state-space reconstruction",
+      "neural ode",
+      "neural sde",
+      "koopman",
+      "sindy",
+      "reservoir computing",
+    ],
+  },
 ];
 
 const STRENGTHS = [
@@ -173,13 +208,27 @@ function bindEvents() {
     state.selectionTimer = window.setTimeout(trackSelection, 550);
   });
 
+  ["pointerdown", "keydown", "scroll", "touchstart"].forEach((eventName) => {
+    window.addEventListener(eventName, markUserActivity, { passive: true });
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      state.lastHeartbeatAt = Date.now();
+      return;
+    }
+    flushVisibleItemDurations();
+    flushHeartbeat();
+    flushAnalyticsEvents(true);
+  });
+
   window.addEventListener("beforeunload", () => {
     flushVisibleItemDurations();
     flushHeartbeat();
     flushAnalyticsEvents(true);
   });
 
-  window.setInterval(flushHeartbeat, 15000);
+  window.setInterval(flushHeartbeat, HEARTBEAT_INTERVAL_MS);
 }
 
 async function loadInitialReport() {
@@ -502,21 +551,26 @@ function openDeep(deepId) {
       <h3>风险提示</h3>
       <p>${escapeHtml(item.risk || "未标注风险")}</p>
     </section>
-    ${renderEvidenceBox(evidence)}
+    ${renderEvidenceBox(evidence, item.id, direction.id)}
   `;
 
   nodes.drawerBackdrop.hidden = false;
   nodes.deepDrawer.setAttribute("aria-hidden", "false");
-  trackEvent("item_view", {
+  state.currentDeepContext = {
     item_layer: "deep",
     item_id: item.id,
     direction_id: direction.id,
     source_category: sourceCategory,
-    duration_ms: 1000,
+  };
+  trackEvent("deep_open", {
+    item_layer: "deep",
+    item_id: item.id,
+    direction_id: direction.id,
+    source_category: sourceCategory,
   });
 }
 
-function renderEvidenceBox(evidence) {
+function renderEvidenceBox(evidence, contextItemId = "", directionId = "") {
   if (!evidence) {
     return `
       <section class="evidenceBox">
@@ -541,7 +595,7 @@ function renderEvidenceBox(evidence) {
       <div class="evidenceBoxMeta">${escapeHtml(sourceLine)} · ${escapeHtml(formatShortDate(evidence.published_at))}</div>
       <p class="abstract">${escapeHtml(evidence.usage || "")}</p>
       <p class="abstract riskText">${escapeHtml(evidence.ad_risk || "")}</p>
-      <a class="sourceButton" href="${escapeAttribute(evidence.url || "#")}" target="_blank" rel="noopener" data-evidence-id="${escapeHtml(evidence.id || "")}" data-source-category="${escapeHtml(evidence.source_category || "")}">打开原文 ↗</a>
+      <a class="sourceButton" href="${escapeAttribute(evidence.url || "#")}" target="_blank" rel="noopener" data-evidence-id="${escapeHtml(evidence.id || "")}" data-context-item-id="${escapeHtml(contextItemId)}" data-direction-id="${escapeHtml(directionId)}" data-source-category="${escapeHtml(evidence.source_category || "")}">打开原文 ↗</a>
     </section>
   `;
 }
@@ -573,6 +627,8 @@ function trackSourceOpen(link) {
   trackEvent("source_open", {
     item_layer: "evidence",
     item_id: link.dataset.evidenceId,
+    context_item_id: link.dataset.contextItemId || "",
+    direction_id: link.dataset.directionId || "",
     source_category: link.dataset.sourceCategory || "",
   });
 }
@@ -673,6 +729,9 @@ function directionByLabel(label) {
     "面向人类的数字孪生": "twin",
     "ai时代的泛哲学讨论": "philosophy",
     "泛哲学讨论": "philosophy",
+    "数据驱动的动力系统重建与系统辨识": "dynamical_systems",
+    "动力系统重建与系统辨识": "dynamical_systems",
+    "动力系统重建": "dynamical_systems",
   };
   return directionById(aliases[normalizeDirectionLabel(label)]);
 }
@@ -808,9 +867,21 @@ function initEntrance() {
 }
 
 function trackSelection() {
-  const selected = String(window.getSelection ? window.getSelection() : "").trim();
+  const selection = window.getSelection ? window.getSelection() : null;
+  const selected = String(selection || "").trim();
   if (!selected || selected.length < 8) return;
+  const anchorElement = selection?.anchorNode?.nodeType === 1 ? selection.anchorNode : selection?.anchorNode?.parentElement;
+  const cardTarget = anchorElement?.closest?.(".card")?.querySelector?.(".trackTarget");
+  const itemContext = cardTarget
+    ? {
+        item_layer: cardTarget.dataset.trackLayer || "",
+        item_id: cardTarget.dataset.trackId || "",
+        direction_id: cardTarget.dataset.trackDirection || "",
+        source_category: cardTarget.dataset.trackSourceCategory || "",
+      }
+    : state.currentDeepContext || {};
   trackEvent("text_select", {
+    ...itemContext,
     selected_text_excerpt: selected.slice(0, 120),
     selected_text_length: selected.length,
   });
@@ -829,11 +900,53 @@ function getOrCreateSessionId() {
   }
 }
 
+function createAnonymousId(prefix) {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function getOrCreateVisit() {
+  const key = "info_radar_visit";
+  const now = Date.now();
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(key) || "null");
+    if (stored?.visitId && now - Number(stored.lastActivityAt || 0) < VISIT_TIMEOUT_MS) {
+      return { visitId: stored.visitId, lastActivityAt: now };
+    }
+  } catch {
+    // Fall through to a fresh anonymous visit.
+  }
+  const visit = { visitId: createAnonymousId("v"), lastActivityAt: now };
+  persistVisit(visit);
+  return visit;
+}
+
+function persistVisit(visit) {
+  try {
+    window.localStorage.setItem("info_radar_visit", JSON.stringify(visit));
+  } catch {
+    // Analytics remains best-effort when localStorage is unavailable.
+  }
+}
+
+function markUserActivity() {
+  const now = Date.now();
+  if (now - state.lastInteractionAt >= VISIT_TIMEOUT_MS) {
+    state.visitId = createAnonymousId("v");
+  }
+  state.lastInteractionAt = now;
+  if (now - state.lastVisitPersistedAt >= 5000) {
+    state.lastVisitPersistedAt = now;
+    persistVisit({ visitId: state.visitId, lastActivityAt: now });
+  }
+}
+
 function trackEvent(eventType, payload = {}) {
   if (!state.report) return;
   const event = {
     event_type: eventType,
+    event_id: createAnonymousId("e"),
     session_id: state.sessionId,
+    visit_id: state.visitId,
     report_date: state.report.date,
     created_at: new Date().toISOString(),
     scroll_depth: currentScrollDepth(),
@@ -865,8 +978,8 @@ function flushHeartbeat() {
   const now = Date.now();
   const duration = now - state.lastHeartbeatAt;
   state.lastHeartbeatAt = now;
-  if (document.hidden || duration < 1000) return;
-  trackEvent("page_heartbeat", { duration_ms: duration });
+  if (document.hidden || now - state.lastInteractionAt > USER_IDLE_TIMEOUT_MS || duration < 1000) return;
+  trackEvent("page_heartbeat", { duration_ms: Math.min(duration, HEARTBEAT_INTERVAL_MS) });
 }
 
 function setupItemTracking() {

@@ -94,6 +94,22 @@ def test_scoring_detects_ai_era_philosophy_discussion() -> None:
     assert scored.primary_direction == "ai_philosophy"
 
 
+def test_scoring_detects_dynamical_system_reconstruction() -> None:
+    item = make_item(
+        "Dynamical system reconstruction from partial observations using stochastic dynamics",
+        "https://arxiv.org/abs/2510.01089",
+        source_type="arxiv",
+        excerpt=(
+            "We infer latent system state trajectories and noise time series from partially observed "
+            "nonlinear dynamics using a variational state-space model."
+        ),
+    )
+
+    scored = score_item(item, source_priority=90)
+
+    assert scored.primary_direction == "dynamical_systems"
+
+
 def test_scoring_detects_ics_advisory_evidence_type() -> None:
     item = RadarItem(
         source_id="cisa-ics-advisories",

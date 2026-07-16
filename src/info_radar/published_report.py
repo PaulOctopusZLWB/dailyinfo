@@ -165,7 +165,7 @@ def _parse_evidence_items(section: str) -> list[EvidenceItem]:
         _, bullets = _split_bullets(body)
         original = bullets.get("原文", "") or bullets.get("来源", "")
         url = _extract_markdown_url(original) or original
-        direction_label = bullets.get("方向标签", "")
+        direction_label = bullets.get("方向标签", "") or bullets.get("方向", "")
         source_type = bullets.get("来源类型", "")
         source_label = _source_label(url, source_type, title)
         items.append(
@@ -396,18 +396,28 @@ def _direction_id(label: str) -> str:
     if not normalized:
         return ""
     mappings = {
+        "macroai": "macro",
         "宏观ai前沿论点": "macro",
         "宏观a前沿论点": "macro",
+        "temporal": "timeseries",
         "时序智能": "timeseries",
         "时序模型时序算法时序认知时序应用前沿": "timeseries",
+        "industrialai": "industrial",
         "工业软件ai": "industrial",
         "工业控制软件ai结合前沿": "industrial",
+        "aiagents": "agent",
         "aiagent生态": "agent",
         "最佳使用aiagent的github库方法论认知讨论重要观点": "agent",
+        "humandigitaltwin": "twin",
         "数字孪生": "twin",
         "面向人类的数字孪生": "twin",
+        "aiphilosophy": "philosophy",
         "ai时代的泛哲学讨论": "philosophy",
         "泛哲学讨论": "philosophy",
+        "dynamicalsystems": "dynamical_systems",
+        "数据驱动的动力系统重建与系统辨识": "dynamical_systems",
+        "动力系统重建与系统辨识": "dynamical_systems",
+        "动力系统重建": "dynamical_systems",
     }
     return mappings.get(normalized, "")
 

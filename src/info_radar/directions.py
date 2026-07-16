@@ -9,6 +9,7 @@ DIRECTIONS = OrderedDict(
         ("ai_agents", "最佳使用 AI agent 的 GitHub 库、方法论、认知、讨论、重要观点"),
         ("human_digital_twin", "面向人类的数字孪生"),
         ("ai_philosophy", "AI 时代的泛哲学讨论"),
+        ("dynamical_systems", "数据驱动的动力系统重建与系统辨识"),
     ]
 )
 
@@ -19,4 +20,5 @@ DIRECTION_PREFIX = {
     "ai_agents": "方向四",
     "human_digital_twin": "方向五",
     "ai_philosophy": "方向六",
+    "dynamical_systems": "方向七",
 }

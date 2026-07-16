@@ -91,6 +91,20 @@ def test_write_published_report_json_writes_date_file(tmp_path: Path) -> None:
     assert '"direction_id": "macro"' in text
 
 
+def test_parse_published_report_maps_dynamical_systems_direction() -> None:
+    for direction_label in ("数据驱动的动力系统重建与系统辨识", "dynamical_systems"):
+        markdown = SAMPLE.replace(
+            "宏观 AI 前沿论点",
+            direction_label,
+        ).replace("- 方向标签：", "- 方向：")
+
+        report = parse_published_report(markdown, report_date="2026-07-01")
+
+        assert report.core_items[0].direction_id == "dynamical_systems"
+        assert report.deep_items[0].direction_id == "dynamical_systems"
+        assert report.evidence_items[0].direction_id == "dynamical_systems"
+
+
 def test_parse_published_report_splits_deep_body_into_argument_and_impact() -> None:
     markdown = """# 2026-07-01 信息雷达晨报
 
