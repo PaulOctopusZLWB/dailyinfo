@@ -1049,7 +1049,7 @@ function initAmbientFx() {
   const ring = nodes.cursorRing;
   const context = canvas ? canvas.getContext("2d") : null;
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const finePointer = window.matchMedia("(pointer:fine)").matches;
+  const finePointer = window.matchMedia("(any-pointer:fine)").matches;
   document.body.dataset.cfx = finePointer ? "1" : "0";
   if (!finePointer) {
     dot.style.display = "none";
@@ -1106,19 +1106,29 @@ function initAmbientFx() {
   };
 
   const onMove = (event) => {
+    if (!fx.seen) {
+      fx.rx = event.clientX;
+      fx.ry = event.clientY;
+    }
     fx.mx = event.clientX;
     fx.my = event.clientY;
     fx.seen = true;
-    fx.hover = !!event.target.closest("a,button,input,select,[data-cursor]");
+    fx.hover = event.target instanceof Element
+      ? !!event.target.closest("a,button,input,select,[data-cursor]")
+      : false;
   };
 
   const onLeave = () => {
     fx.mx = -500;
     fx.my = -500;
+    fx.seen = false;
+    dot.style.transform = "translate(-200px, -200px)";
+    ring.style.transform = "translate(-200px, -200px)";
+    ring.style.opacity = "0";
   };
 
   window.addEventListener("resize", resize);
-  window.addEventListener("mousemove", onMove);
+  window.addEventListener("PointerEvent" in window ? "pointermove" : "mousemove", onMove);
   document.documentElement.addEventListener("mouseleave", onLeave);
   resize();
   readGold();

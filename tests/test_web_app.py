@@ -380,6 +380,10 @@ def test_static_reader_page_is_served(tmp_path: Path) -> None:
     assert "initAmbientFx" in js
     assert "ambientCanvas" in js
     assert "cursorRing" in js
+    assert 'matchMedia("(any-pointer:fine)")' in js
+    assert '"pointermove" : "mousemove"' in js
+    assert "fx.rx = event.clientX" in js
+    assert "fx.seen = false" in js
     assert "viewTabs" in js
     assert "prevDate" in js
     assert "nextDate" in js
